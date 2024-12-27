@@ -20,6 +20,24 @@ export const AI_HANGUP_CALL = gql(`
   }
 `);
 
+export const AI_SET_PAUSED = gql(`
+  mutation SetPaused($dialId: ID!, $pauseStatus: Boolean!) {
+    pauseAI(dialId: $dialId, pauseStatus: $pauseStatus) {
+        id
+    }
+  }
+`);
+
+export const REFRESH_TRANSCRIPT = gql(`
+  subscription RefreshTranscript($dialId: ID!) {
+    watchTranscript(dialId: $dialId) {
+      speaker
+      text
+      detailType
+    }
+  }
+`);
+
 export const AI_GET_TOKEN = gql(`
   mutation BrowserDialToken($input: BrowserDialTokenInput!) {
     browserDialToken(input: $input) {

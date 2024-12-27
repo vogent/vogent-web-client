@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, NormalizedCacheObject, split } from '@apollo/client';
+import { ApolloClient, createHttpLink, InMemoryCache, NormalizedCacheObject, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition, ObservableSubscription } from '@apollo/client/utilities';
@@ -13,25 +13,45 @@ import {
   AI_GET_TOKEN,
   AI_HANGUP_CALL,
   AI_START_DIAL_SESSION,
+  AI_SET_PAUSED,
+  REFRESH_TRANSCRIPT,
 } from './queries';
 import { createClient } from 'graphql-ws';
 import { VogentDevice } from './devices/VogentDevice';
 import { VonageDevice } from './devices/VonageDevice';
 import { dialStatusIsComplete } from './utils';
 
+export type Transcript = {
+  text: string;
+  speaker: string;
+}[]
+
 export class VogentCall {
   client: ApolloClient<NormalizedCacheObject>;
   sessionId: string;
+  dialId: string;
   subscription?: ObservableSubscription;
+  baseUrl: string;
   dial?: Dial;
   _handlers: {
     ev: 'status';
     fn: (...args: any[]) => void;
   }[];
 
-  constructor(id: string, token: string) {
+  constructor(dialDetails: {
+    sessionId: string;
+    dialId: string;
+    token: string;
+  }, config: {
+    baseUrl: string;
+  } = {
+    baseUrl: 'https://api.getelto.com',
+  }) {
     this._handlers = [];
-    this.sessionId = id;
+    this.sessionId = dialDetails.sessionId;
+    this.dialId = dialDetails.dialId;
+    let token = dialDetails.token;
+
     const authLink = setContext((_, { headers }) => {
       return {
         headers: {
@@ -41,13 +61,20 @@ export class VogentCall {
       };
     });
 
-    const httpLink = createClient({
-      url: `https://api.getelto.com/query`,
+    this.baseUrl = config.baseUrl;
+
+    const httpLink = createHttpLink({
+      uri: `${this.baseUrl}/query`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
     });
+
+    const wsBaseUrl = this.baseUrl.replace('https://', 'wss://').replace("http://", "ws://");
 
     const wsLink = new GraphQLWsLink(
       createClient({
-        url: `wss://api.getelto.com/query`,
+        url: `${wsBaseUrl}/query`,
         connectionParams: () => ({
           authToken: token,
         }),
@@ -77,6 +104,32 @@ export class VogentCall {
     });
   }
 
+  monitorTranscript(fn: (transcript: Transcript) => void): () => void {
+    const subscription = this.client
+      .subscribe({
+        query: REFRESH_TRANSCRIPT,
+        variables: {
+          dialId: this.dialId,
+        },
+      })
+      .subscribe(({ data }) => {
+        console.log('monitorTranscript', data);
+
+        if (!data?.watchTranscript) {
+          return;
+        }
+
+        fn(data.watchTranscript.map((t) => ({
+          text: t.text,
+          speaker: t.speaker,
+        })));
+      });
+
+    return () => {
+      subscription.unsubscribe();
+    }
+  }
+
   updateDial(dial: Dial) {
     if (!this.dial || dial.status !== this.dial.status) {
       this._handlers.forEach((h) => {
@@ -96,7 +149,7 @@ export class VogentCall {
     };
   }
 
-  async start() {
+  async connectAudio(liveListen: boolean = false) {
     const token = await this.client.mutate({
       mutation: AI_GET_TOKEN,
       variables: {
@@ -109,8 +162,12 @@ export class VogentCall {
 
     const d: VogentDevice = await VonageDevice.getDevice(token.data!.browserDialToken.token, true);
 
-    // setDevice(d);
+    const c = await d.connect({
+      params: { EltoDialSessionID: this.sessionId, LiveListen: liveListen },
+    });
+  }
 
+  async start(disableAudio: boolean = false) {
     this.subscription = this.client
       .subscribe({
         query: AI_CONNECT_SESSION,
@@ -140,8 +197,22 @@ export class VogentCall {
         }
       });
 
-    const c = await d.connect({
-      params: { EltoDialSessionID: this.sessionId },
+    if (!disableAudio) {
+      await this.connectAudio();
+    }
+  }
+
+  async setPaused(paused: boolean) {
+    if (!this.dial) {
+      return;
+    }
+
+    await this.client.mutate({
+      mutation: AI_SET_PAUSED,
+      variables: {
+        dialId: this.dial.id,
+        pauseStatus: paused,
+      },
     });
   }
 

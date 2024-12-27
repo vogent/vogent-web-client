@@ -14,6 +14,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Any: { input: any; output: any; }
   Map: { input: any; output: any; }
   Time: { input: any; output: any; }
   Upload: { input: any; output: any; }
@@ -143,6 +144,24 @@ export enum AnswerType {
   Unknown = 'UNKNOWN'
 }
 
+export type ApiFlowNode = {
+  __typename?: 'ApiFlowNode';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  nodeData: Scalars['Map']['output'];
+  outputSchema?: Maybe<Scalars['String']['output']>;
+  transitionRules: Array<FlowTransitionRule>;
+  type: Scalars['String']['output'];
+};
+
+export type ApiFlowNodeInput = {
+  id: Scalars['ID']['input'];
+  name: Scalars['String']['input'];
+  nodeData: Scalars['Map']['input'];
+  transitionRules: Array<FlowTransitionRuleInput>;
+  type: Scalars['String']['input'];
+};
+
 export type ApolloPurpose = {
   __typename?: 'ApolloPurpose';
   id: Scalars['ID']['output'];
@@ -168,6 +187,15 @@ export type AuthPayload = {
   __typename?: 'AuthPayload';
   token: Scalars['String']['output'];
   user: User;
+};
+
+export type BasicUtteranceDetectorConfig = {
+  __typename?: 'BasicUtteranceDetectorConfig';
+  sensitivity: UtteranceDetectorSensitivity;
+};
+
+export type BasicUtteranceDetectorConfigInput = {
+  sensitivity: UtteranceDetectorSensitivity;
 };
 
 export type BillingSubscription = {
@@ -251,6 +279,10 @@ export type CallAgent = {
   extractors: Array<CallAgentExtractor>;
   functionDefinitions: Array<FunctionDefinition>;
   id: Scalars['ID']['output'];
+  ivrDetectionType: IvrDetectionType;
+  ivrTaggingText?: Maybe<Scalars['String']['output']>;
+  ivrVersionedPrompt?: Maybe<VersionedPrompt>;
+  ivrVoice?: Maybe<AiVoice>;
   language: Scalars['String']['output'];
   name: Scalars['String']['output'];
   openingLine?: Maybe<Scalars['String']['output']>;
@@ -260,6 +292,7 @@ export type CallAgent = {
   prompts: Array<VersionedPrompt>;
   pronunciationMap?: Maybe<PronunciationMap>;
   transferNumber?: Maybe<Scalars['String']['output']>;
+  utteranceDetectorConfig: UtteranceDetectorConfig;
   voiceVolumeLevel: Scalars['Int']['output'];
   workspaceId: Scalars['ID']['output'];
 };
@@ -538,6 +571,11 @@ export type CreateCallAgentExtractorInput = {
   workspaceId: Scalars['ID']['input'];
 };
 
+export type CreateCallAgentNodeInput = {
+  nodeInput: ApiFlowNodeInput;
+  versionedPromptId: Scalars['ID']['input'];
+};
+
 export type CreateCallDataPresetInput = {
   callAgentId: Scalars['ID']['input'];
   data: Scalars['Map']['input'];
@@ -634,6 +672,7 @@ export type CreateFunctionDefinitionInput = {
   description: Scalars['String']['input'];
   dsl: Scalars['String']['input'];
   name: Scalars['String']['input'];
+  outputs?: InputMaybe<Array<ExtractorFieldInput>>;
   workspaceId: Scalars['ID']['input'];
 };
 
@@ -666,7 +705,6 @@ export type CreateVersionedPromptInput = {
   agentType: AgentType;
   aiModelId: Scalars['ID']['input'];
   callAgentId: Scalars['ID']['input'];
-  flowDefinition?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;
 };
@@ -923,6 +961,41 @@ export type FilterableField = {
   fieldName: Scalars['String']['output'];
 };
 
+export enum FlowConditionType {
+  Always = 'always',
+  Equal = 'equal',
+  Greater = 'greater',
+  In = 'in',
+  Language = 'language',
+  Less = 'less'
+}
+
+export type FlowDefinition = {
+  __typename?: 'FlowDefinition';
+  nodes: Array<ApiFlowNode>;
+};
+
+export type FlowDefinitionInput = {
+  nodes: Array<ApiFlowNodeInput>;
+};
+
+export type FlowTransitionRule = {
+  __typename?: 'FlowTransitionRule';
+  conditionType: FlowConditionType;
+  field?: Maybe<Scalars['String']['output']>;
+  transitionNodeId: Scalars['String']['output'];
+  value?: Maybe<Scalars['String']['output']>;
+  values?: Maybe<Array<Scalars['String']['output']>>;
+};
+
+export type FlowTransitionRuleInput = {
+  conditionType: FlowConditionType;
+  field?: InputMaybe<Scalars['String']['input']>;
+  transitionNodeId: Scalars['String']['input'];
+  value?: InputMaybe<Scalars['String']['input']>;
+  values?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
 export type FunctionDefinition = {
   __typename?: 'FunctionDefinition';
   arguments: Array<ExtractorField>;
@@ -931,6 +1004,7 @@ export type FunctionDefinition = {
   functionType: FunctionType;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  outputs: Array<ExtractorField>;
 };
 
 export type FunctionDefinitionFilter = {
@@ -960,6 +1034,11 @@ export type HubspotSettingsInput = {
   timezone?: InputMaybe<Scalars['String']['input']>;
   workspaceId: Scalars['ID']['input'];
 };
+
+export enum IvrDetectionType {
+  None = 'NONE',
+  Standard = 'STANDARD'
+}
 
 export type InboundForwardNumberInput = {
   number?: InputMaybe<Scalars['String']['input']>;
@@ -1068,7 +1147,6 @@ export type LookupKnowledgeBaseResult = {
 export type MemberCountRes = {
   __typename?: 'MemberCountRes';
   dialing: Scalars['Int']['output'];
-  nonDialing: Scalars['Int']['output'];
 };
 
 export type MonitorActiveUsersInput = {
@@ -1094,6 +1172,7 @@ export type Mutation = {
   createAiVoice: AiVoice;
   createCallAgent: CallAgent;
   createCallAgentExtractor: CallAgentExtractor;
+  createCallAgentNode: ApiFlowNode;
   createCallDataPreset: CallDataPreset;
   createCoachingComment: CoachingComment;
   createContact: Contact;
@@ -1155,6 +1234,7 @@ export type Mutation = {
   updateApolloSettings: CrmSpecification;
   updateCallAgent: CallAgent;
   updateCallAgentExtractor: CallAgentExtractor;
+  updateCallAgentNode: ApiFlowNode;
   updateCallAgentPronunciationMap: CallAgent;
   updateCustomDetectorRegexps: Workspace;
   updateDialMetadata: Dial;
@@ -1260,6 +1340,11 @@ export type MutationCreateCallAgentArgs = {
 
 export type MutationCreateCallAgentExtractorArgs = {
   input: CreateCallAgentExtractorInput;
+};
+
+
+export type MutationCreateCallAgentNodeArgs = {
+  input: CreateCallAgentNodeInput;
 };
 
 
@@ -1505,7 +1590,6 @@ export type MutationRunExtractorArgs = {
 
 export type MutationSetMemberAccessArgs = {
   email: Scalars['String']['input'];
-  nonDialing: Scalars['Boolean']['input'];
   role: Role;
   workspaceId: Scalars['ID']['input'];
 };
@@ -1574,6 +1658,11 @@ export type MutationUpdateCallAgentArgs = {
 
 export type MutationUpdateCallAgentExtractorArgs = {
   input: UpdateCallAgentExtractorInput;
+};
+
+
+export type MutationUpdateCallAgentNodeArgs = {
+  input: UpdateCallAgentNodeInput;
 };
 
 
@@ -1659,6 +1748,13 @@ export type MutationUpdateWorkspaceUserSettingsArgs = {
 
 export type MutationUpdateWorkspaceWebhookArgs = {
   input: WorkspaceWebhookInput;
+};
+
+export type NodeTransitionResult = {
+  __typename?: 'NodeTransitionResult';
+  fromNodeId: Scalars['String']['output'];
+  result?: Maybe<Scalars['Any']['output']>;
+  toNodeId: Scalars['String']['output'];
 };
 
 export type NullableIdInput = {
@@ -2053,6 +2149,7 @@ export type SpeakerTextRes = {
   audioStart: Scalars['Int']['output'];
   detailType?: Maybe<Scalars['String']['output']>;
   knowledgeBaseContext?: Maybe<Array<SpeakerTextKnowledgeBaseContext>>;
+  nodeTransitionResult?: Maybe<NodeTransitionResult>;
   speaker: Scalars['String']['output'];
   text: Scalars['String']['output'];
 };
@@ -2147,6 +2244,7 @@ export enum SystemResultType {
   Failed = 'FAILED',
   NoAnswer = 'NO_ANSWER',
   NumberSkipped = 'NUMBER_SKIPPED',
+  RateLimited = 'RATE_LIMITED',
   Timeout = 'TIMEOUT',
   UserHangup = 'USER_HANGUP',
   VoicemailLeft = 'VOICEMAIL_LEFT',
@@ -2238,14 +2336,24 @@ export type UpdateCallAgentInput = {
   backgroundNoiseType?: InputMaybe<Scalars['String']['input']>;
   callAgentExtractorId?: InputMaybe<NullableStringInput>;
   defaultPromptId?: InputMaybe<Scalars['ID']['input']>;
+  ivrDetectionType?: InputMaybe<IvrDetectionType>;
+  ivrTaggingText?: InputMaybe<NullableStringInput>;
+  ivrVersionedPromptId?: InputMaybe<NullableStringInput>;
+  ivrVoiceId?: InputMaybe<NullableStringInput>;
   language?: InputMaybe<Scalars['String']['input']>;
   linkedFunctionDefinitionIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   name?: InputMaybe<Scalars['String']['input']>;
   openingLine?: InputMaybe<NullableStringInput>;
   openingLineType?: InputMaybe<OpeningLineType>;
   transferNumber?: InputMaybe<NullableStringInput>;
+  utteranceDetectorConfig?: InputMaybe<UtteranceDetectorConfigInput>;
   voiceId?: InputMaybe<Scalars['ID']['input']>;
   voiceVolumeLevel?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type UpdateCallAgentNodeInput = {
+  nodeInput: ApiFlowNodeInput;
+  versionedPromptId: Scalars['ID']['input'];
 };
 
 export type UpdateCallAgentPronunciationMapInput = {
@@ -2279,6 +2387,7 @@ export type UpdateFunctionDefinitionInput = {
   dsl?: InputMaybe<Scalars['String']['input']>;
   functionDefinitionId: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  outputs?: InputMaybe<Array<ExtractorFieldInput>>;
 };
 
 export type UpdateRefillSettingsInput = {
@@ -2298,7 +2407,8 @@ export type UpdateSystemResultMappingInput = {
 export type UpdateVersionedPromptInput = {
   agentType?: InputMaybe<AgentType>;
   aiModelId?: InputMaybe<Scalars['ID']['input']>;
-  flowDefinition?: InputMaybe<Scalars['String']['input']>;
+  flowDefinition?: InputMaybe<FlowDefinitionInput>;
+  flowDefinitionJSON?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;
   versionedPromptId: Scalars['ID']['input'];
@@ -2393,12 +2503,35 @@ export type UserWorkspaceSettingsInput = {
   workspaceId: Scalars['ID']['input'];
 };
 
+export type UtteranceDetectorConfig = {
+  __typename?: 'UtteranceDetectorConfig';
+  basic?: Maybe<BasicUtteranceDetectorConfig>;
+  type: UtteranceDetectorConfigType;
+};
+
+export type UtteranceDetectorConfigInput = {
+  basic?: InputMaybe<BasicUtteranceDetectorConfigInput>;
+  type: UtteranceDetectorConfigType;
+};
+
+export enum UtteranceDetectorConfigType {
+  Advanced = 'ADVANCED',
+  Basic = 'BASIC'
+}
+
+export enum UtteranceDetectorSensitivity {
+  Fast = 'FAST',
+  Medium = 'MEDIUM',
+  Slow = 'SLOW',
+  UltraFast = 'ULTRA_FAST'
+}
+
 export type VersionedPrompt = {
   __typename?: 'VersionedPrompt';
   agentType: AgentType;
   aiModel?: Maybe<AiModel>;
   createdAt: Scalars['Time']['output'];
-  flowDefinition?: Maybe<Scalars['String']['output']>;
+  flowDefinition?: Maybe<FlowDefinition>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   prompt?: Maybe<Scalars['String']['output']>;
@@ -2409,6 +2542,11 @@ export type VideoTokenResp = {
   __typename?: 'VideoTokenResp';
   sessionId: Scalars['String']['output'];
   token: Scalars['String']['output'];
+};
+
+export type VisibleWorkspaceLimits = {
+  __typename?: 'VisibleWorkspaceLimits';
+  concurrentDialLimit: Scalars['Int']['output'];
 };
 
 export type VoiceFilter = {
@@ -2441,6 +2579,7 @@ export type Workspace = {
   bannerMessage?: Maybe<Scalars['String']['output']>;
   billingUsage: Array<UsageLineItem>;
   callAgents: CallAgentsResult;
+  concurrentDialCount: Scalars['Int']['output'];
   contactLists: ContactListResult;
   crmSpecification: CrmSpecification;
   crmSpecifications: Array<CrmSpecification>;
@@ -2456,7 +2595,7 @@ export type Workspace = {
   knowledgeBases: ListKnowledgeBasesResult;
   limits: WorkspaceLimits;
   member: WorkspaceMember;
-  memberCount: MemberCountRes;
+  memberCount: Scalars['Int']['output'];
   name?: Maybe<Scalars['String']['output']>;
   overLimit: OverLimitResult;
   phoneNumbers: PhoneNumbersResult;
@@ -2471,6 +2610,7 @@ export type Workspace = {
   timeStats: TimeStatsResult;
   userSettings: UserWorkspaceSettings;
   viewerRole: Role;
+  visibleLimits: VisibleWorkspaceLimits;
   voicemails: Array<Voicemail>;
   voices: AiVoicesResult;
   wallet?: Maybe<WorkspaceWallet>;
@@ -2608,26 +2748,21 @@ export type WorkspaceDialStatusChangeMessage = {
 
 export type WorkspaceLimits = {
   __typename?: 'WorkspaceLimits';
-  nonDialingUserLimit: Scalars['Int']['output'];
-  nonDialingUserPhoneNumberLimit: Scalars['Int']['output'];
+  concurrentDialLimit: Scalars['Int']['output'];
   spamLimit: Scalars['Int']['output'];
-  userLimit: Scalars['Int']['output'];
   userPhoneNumberLimit: Scalars['Int']['output'];
 };
 
 export type WorkspaceLimitsInput = {
-  nonDialingUserLimit?: InputMaybe<Scalars['Int']['input']>;
-  nonDialingUserPhoneNumberLimit?: InputMaybe<Scalars['Int']['input']>;
+  concurrentDialLimit?: InputMaybe<Scalars['Int']['input']>;
   salesfloorType?: InputMaybe<SalesfloorType>;
   spamLimit?: InputMaybe<Scalars['Int']['input']>;
-  userLimit?: InputMaybe<Scalars['Int']['input']>;
   userPhoneNumberLimit?: InputMaybe<Scalars['Int']['input']>;
   workspaceId: Scalars['ID']['input'];
 };
 
 export type WorkspaceMember = {
   __typename?: 'WorkspaceMember';
-  nonDialing: Scalars['Boolean']['output'];
   role: Role;
   user: User;
 };
@@ -2669,6 +2804,21 @@ export type HangupCallMutationVariables = Exact<{
 
 export type HangupCallMutation = { __typename?: 'Mutation', hangupCall: boolean };
 
+export type SetPausedMutationVariables = Exact<{
+  dialId: Scalars['ID']['input'];
+  pauseStatus: Scalars['Boolean']['input'];
+}>;
+
+
+export type SetPausedMutation = { __typename?: 'Mutation', pauseAI: { __typename?: 'Dial', id: string } };
+
+export type RefreshTranscriptSubscriptionVariables = Exact<{
+  dialId: Scalars['ID']['input'];
+}>;
+
+
+export type RefreshTranscriptSubscription = { __typename?: 'Subscription', watchTranscript: Array<{ __typename?: 'SpeakerTextRes', speaker: string, text: string, detailType?: string | null }> };
+
 export type BrowserDialTokenMutationVariables = Exact<{
   input: BrowserDialTokenInput;
 }>;
@@ -2687,5 +2837,7 @@ export type ConnectSessionSubscription = { __typename?: 'Subscription', connectS
 export const CreateAdHocDialSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateAdHocDialSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateAdHocDialSessionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createAdHocDialSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"telephonyProvider"}}]}}]}}]} as unknown as DocumentNode<CreateAdHocDialSessionMutation, CreateAdHocDialSessionMutationVariables>;
 export const StartDialSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StartDialSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startDialSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialSessionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}}}]}]}}]} as unknown as DocumentNode<StartDialSessionMutation, StartDialSessionMutationVariables>;
 export const HangupCallDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"HangupCall"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dropVoicemail"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"transferNumber"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hangupCall"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}},{"kind":"Argument","name":{"kind":"Name","value":"dropVoicemail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dropVoicemail"}}},{"kind":"Argument","name":{"kind":"Name","value":"transferNumber"},"value":{"kind":"Variable","name":{"kind":"Name","value":"transferNumber"}}}]}]}}]} as unknown as DocumentNode<HangupCallMutation, HangupCallMutationVariables>;
+export const SetPausedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetPaused"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pauseStatus"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pauseAI"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}},{"kind":"Argument","name":{"kind":"Name","value":"pauseStatus"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pauseStatus"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SetPausedMutation, SetPausedMutationVariables>;
+export const RefreshTranscriptDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"RefreshTranscript"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"watchTranscript"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"speaker"}},{"kind":"Field","name":{"kind":"Name","value":"text"}},{"kind":"Field","name":{"kind":"Name","value":"detailType"}}]}}]}}]} as unknown as DocumentNode<RefreshTranscriptSubscription, RefreshTranscriptSubscriptionVariables>;
 export const BrowserDialTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"BrowserDialToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BrowserDialTokenInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browserDialToken"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"iceConfig"}}]}}]}}]} as unknown as DocumentNode<BrowserDialTokenMutation, BrowserDialTokenMutationVariables>;
 export const ConnectSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"ConnectSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"sessionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"messageType"}},{"kind":"Field","name":{"kind":"Name","value":"content"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DialsUpdatedMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contactId"}},{"kind":"Field","name":{"kind":"Name","value":"dials"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"answerType"}},{"kind":"Field","name":{"kind":"Name","value":"phoneField"}},{"kind":"Field","name":{"kind":"Name","value":"callDispositionId"}},{"kind":"Field","name":{"kind":"Name","value":"systemResultType"}},{"kind":"Field","name":{"kind":"Name","value":"toNumber"}}]}},{"kind":"Field","name":{"kind":"Name","value":"contactComplete"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DialConnectMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dialId"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SessionUpdatedMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dialSession"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reason"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ConnectSessionSubscription, ConnectSessionSubscriptionVariables>;
