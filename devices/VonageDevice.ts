@@ -1,4 +1,4 @@
-import { VogentCall } from './VogentDevice';
+import { VogentAudioConn } from './VogentDevice';
 import { VonageClient, LoggingLevel } from '@vonage/client-sdk';
 
 export class VonageCall {
@@ -95,7 +95,7 @@ export class VonageDevice {
     return new VonageDevice(sessId, client, disableEffects);
   }
 
-  async connect(p: any): Promise<VogentCall> {
+  async connect(p: any): Promise<VogentAudioConn> {
     const call = await this._client.serverCall(p.params);
     const v = new VonageCall(call, this._client, p.params);
     return v;

@@ -17,7 +17,7 @@ import {
   REFRESH_TRANSCRIPT,
 } from './queries';
 import { createClient } from 'graphql-ws';
-import { VogentDevice } from './devices/VogentDevice';
+import { VogentAudioConn, VogentDevice } from './devices/VogentDevice';
 import { VonageDevice } from './devices/VonageDevice';
 import { dialStatusIsComplete } from './utils';
 
@@ -149,7 +149,7 @@ export class VogentCall {
     };
   }
 
-  async connectAudio(liveListen: boolean = false) {
+  async connectAudio(liveListen: boolean = false): Promise<VogentAudioConn> {
     const token = await this.client.mutate({
       mutation: AI_GET_TOKEN,
       variables: {
@@ -163,11 +163,13 @@ export class VogentCall {
     const d: VogentDevice = await VonageDevice.getDevice(token.data!.browserDialToken.token, true);
 
     const c = await d.connect({
-      params: { EltoDialSessionID: this.sessionId, LiveListen: liveListen },
+      params: { EltoDialSessionID: this.sessionId, LiveListen: liveListen, DialID: this.dialId },
     });
+
+    return c;
   }
 
-  async start(disableAudio: boolean = false) {
+  async start() {
     this.subscription = this.client
       .subscribe({
         query: AI_CONNECT_SESSION,
@@ -196,10 +198,6 @@ export class VogentCall {
           }
         }
       });
-
-    if (!disableAudio) {
-      await this.connectAudio();
-    }
   }
 
   async setPaused(paused: boolean) {
