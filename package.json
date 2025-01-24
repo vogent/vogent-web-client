@@ -1,6 +1,6 @@
 {
   "name": "@vogent/vogent-web-client",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "license": "MIT",
   "dependencies": {
     "@apollo/client": "^3.12.4",
