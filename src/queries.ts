@@ -1,13 +1,5 @@
 import { gql } from './__generated__';
 
-export const AI_CREATE_AD_HOC_DIAL_SESSION = gql(`
-mutation CreateAdHocDialSession($input: CreateAdHocDialSessionInput!) {
-  createAdHocDialSession(input: $input) {
-    id
-    telephonyProvider
-  }
-}`);
-
 export const AI_START_DIAL_SESSION = gql(`
   mutation StartDialSession($sessionId: ID!) {
     startDialSession(dialSessionId: $sessionId)

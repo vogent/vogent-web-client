@@ -40,7 +40,7 @@
  * @module VogentCall
  */
 
-import { ApolloClient, createHttpLink, InMemoryCache, NormalizedCacheObject, split } from '@apollo/client';
+import { ApolloClient, createHttpLink, InMemoryCache, NormalizedCacheObject, split } from '@apollo/client/core';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition, ObservableSubscription } from '@apollo/client/utilities';
@@ -298,14 +298,14 @@ export class VogentCall {
    * @param paused - Whether to pause the AI or not.
    */
   async setPaused(paused: boolean) {
-    if (!this.dial) {
+    if (!this.dialId) {
       return;
     }
 
     await this.client.mutate({
       mutation: AI_SET_PAUSED,
       variables: {
-        dialId: this.dial.id,
+        dialId: this.dialId,
         pauseStatus: paused,
       },
     });
@@ -315,14 +315,14 @@ export class VogentCall {
    * Ends the current call
    */
   async hangup() {
-    if (!this.dial) {
+    if (!this.dialId) {
       return;
     }
 
     await this.client.mutate({
       mutation: AI_HANGUP_CALL,
       variables: {
-        dialId: this.dial.id,
+        dialId: this.dialId,
       },
     });
   }

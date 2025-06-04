@@ -16,6 +16,7 @@ export class VonageCall {
     this._client = client;
     this._params = params;
     this._handlers = [];
+    this._liveListen = false;
 
     this._client.on('callHangup', (callId, _, reason) => {
       if (callId !== this._callId) {
