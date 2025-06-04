@@ -62,6 +62,7 @@ import { createClient } from 'graphql-ws';
 import { VogentAudioConn, VogentDevice } from './devices/VogentDevice';
 import { VonageDevice } from './devices/VonageDevice';
 import { dialStatusIsComplete } from './utils';
+import { LivekitDevice } from './devices/LivekitDevice';
 
 export type Transcript = {
   /** The text of the transcript */
@@ -250,7 +251,12 @@ export class VogentCall {
       },
     });
 
-    const d: VogentDevice = await VonageDevice.getDevice(token.data!.browserDialToken.token, true);
+    let d: VogentDevice;
+    if (token.data!.browserDialToken.telephonyProvider === 'livekit') {
+      d = await LivekitDevice.getDevice(token.data!.browserDialToken.token, token.data!.browserDialToken.url);
+    } else {
+      d = await VonageDevice.getDevice(token.data!.browserDialToken.token, true);
+    }
 
     const c = await d.connect({
       params: { EltoDialSessionID: this.sessionId, LiveListen: liveListen, DialID: this.dialId },

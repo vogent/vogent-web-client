@@ -35,6 +35,8 @@ export const AI_GET_TOKEN = gql(`
     browserDialToken(input: $input) {
       token
       iceConfig
+      telephonyProvider
+      url
     }
   }
 `);

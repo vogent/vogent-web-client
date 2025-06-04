@@ -27,9 +27,109 @@ export type AiChat = {
   transcript: Array<SpeakerTextRes>;
 };
 
+export type AiEvalAggregateResult = {
+  __typename?: 'AIEvalAggregateResult';
+  numFailing: Scalars['Int']['output'];
+  numPassing: Scalars['Int']['output'];
+};
+
+export type AiEvalConfig = {
+  __typename?: 'AIEvalConfig';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  promptSnippet: Scalars['String']['output'];
+  records: AiEvalRecordsResult;
+  runs: AiEvalRunsResult;
+};
+
+
+export type AiEvalConfigRecordsArgs = {
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+};
+
+
+export type AiEvalConfigRunsArgs = {
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+};
+
+export type AiEvalListResultsResult = {
+  __typename?: 'AIEvalListResultsResult';
+  aiEvalResults: Array<AiEvalResult>;
+  numAiEvalResults: Scalars['Int']['output'];
+};
+
+export type AiEvalRecord = {
+  __typename?: 'AIEvalRecord';
+  dial?: Maybe<Dial>;
+  id: Scalars['ID']['output'];
+  recordType: AiEvalRecordType;
+};
+
+export enum AiEvalRecordType {
+  Dial = 'DIAL'
+}
+
+export type AiEvalRecordsResult = {
+  __typename?: 'AIEvalRecordsResult';
+  aiEvalRecords: Array<AiEvalRecord>;
+  numAiEvalRecords: Scalars['Int']['output'];
+};
+
+export type AiEvalResult = {
+  __typename?: 'AIEvalResult';
+  createdAt: Scalars['Time']['output'];
+  evalTranscript: Array<SpeakerTextRes>;
+  id: Scalars['ID']['output'];
+  numAlerts: Scalars['Int']['output'];
+  record: AiEvalRecord;
+  results: Array<AiEvalResultLine>;
+};
+
+export type AiEvalResultLine = {
+  __typename?: 'AIEvalResultLine';
+  accurate: Scalars['Boolean']['output'];
+  index: Scalars['Int']['output'];
+  modelOutput: Scalars['String']['output'];
+  reason?: Maybe<Scalars['String']['output']>;
+};
+
+export type AiEvalRun = {
+  __typename?: 'AIEvalRun';
+  aggregateResult: AiEvalAggregateResult;
+  callAgent: CallAgent;
+  createdAt: Scalars['Time']['output'];
+  id: Scalars['ID']['output'];
+  results: AiEvalListResultsResult;
+  status: AiEvalRunStatus;
+  versionedPrompt: VersionedPrompt;
+};
+
+
+export type AiEvalRunResultsArgs = {
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+};
+
+export enum AiEvalRunStatus {
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Running = 'RUNNING',
+  Success = 'SUCCESS'
+}
+
+export type AiEvalRunsResult = {
+  __typename?: 'AIEvalRunsResult';
+  aiEvalRuns: Array<AiEvalRun>;
+  numAiEvalRuns: Scalars['Int']['output'];
+};
+
 export type AiModel = {
   __typename?: 'AIModel';
+  allowedAgentType: AllowedAgentType;
   id: Scalars['ID']['output'];
+  modelOptions: Array<AiModelOption>;
   modelParams?: Maybe<Scalars['String']['output']>;
   modelType: Scalars['String']['output'];
   name: Scalars['String']['output'];
@@ -39,8 +139,25 @@ export type AiModel = {
 };
 
 export type AiModelFilter = {
+  agentType?: InputMaybe<AgentType>;
   name?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type AiModelOption = {
+  __typename?: 'AIModelOption';
+  default: Scalars['String']['output'];
+  fieldType?: Maybe<FieldType>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  range?: Maybe<Array<RangeEndpoint>>;
+  valueType: AiModelOptionValueType;
+};
+
+export enum AiModelOptionValueType {
+  Float = 'FLOAT',
+  Int = 'INT',
+  String = 'STRING'
+}
 
 export type AiModelsResult = {
   __typename?: 'AIModelsResult';
@@ -50,13 +167,24 @@ export type AiModelsResult = {
 
 export type AiVoice = {
   __typename?: 'AIVoice';
+  badges?: Maybe<Array<Scalars['String']['output']>>;
   gender: VoiceGender;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   provider: Scalars['String']['output'];
   providerDetails?: Maybe<Scalars['String']['output']>;
   providerVoiceId: Scalars['String']['output'];
-  workspaceId?: Maybe<Scalars['ID']['output']>;
+  public: Scalars['Boolean']['output'];
+  refText: Scalars['String']['output'];
+  voiceOptions: Array<AiModelOption>;
+  voiceTier: VoiceTier;
+  workspaces: Array<AiVoiceWorkspace>;
+};
+
+export type AiVoiceWorkspace = {
+  __typename?: 'AIVoiceWorkspace';
+  providerDetails?: Maybe<Scalars['String']['output']>;
+  workspace: Workspace;
 };
 
 export type AiVoicesResult = {
@@ -74,6 +202,11 @@ export type ApiKey = {
   name: Scalars['String']['output'];
 };
 
+export enum AccessType {
+  Deny = 'DENY',
+  Grant = 'GRANT'
+}
+
 export type AdHocDialSession = {
   __typename?: 'AdHocDialSession';
   id: Scalars['ID']['output'];
@@ -88,6 +221,11 @@ export type AddBalanceInput = {
 export type AddCallAgentFieldInput = {
   agentId: Scalars['ID']['input'];
   name: Scalars['String']['input'];
+};
+
+export type AddDialAiEvalRecordInput = {
+  aiEvalConfigId: Scalars['ID']['input'];
+  dialIds: Array<Scalars['ID']['input']>;
 };
 
 export type AddKnowledgeBaseFilesInput = {
@@ -121,11 +259,6 @@ export type AggregateStats = {
   totalCallTimeSecs: Scalars['Int']['output'];
 };
 
-export enum AiModelAccessType {
-  Deny = 'DENY',
-  Grant = 'GRANT'
-}
-
 export type AllWorkspacesFilterInput = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
@@ -136,6 +269,11 @@ export type AllWorkspacesResult = {
   numWorkspaces: Scalars['Int']['output'];
   workspaces: Array<Workspace>;
 };
+
+export enum AllowedAgentType {
+  FlowOnly = 'FLOW_ONLY',
+  StandardOnly = 'STANDARD_ONLY'
+}
 
 export enum AnswerType {
   Human = 'HUMAN',
@@ -152,6 +290,11 @@ export type ApiFlowNode = {
   outputSchema?: Maybe<Scalars['String']['output']>;
   transitionRules: Array<FlowTransitionRule>;
   type: Scalars['String']['output'];
+};
+
+export type ApiFlowNodeDeleteResult = {
+  __typename?: 'ApiFlowNodeDeleteResult';
+  connectedNodes: Array<ApiFlowNode>;
 };
 
 export type ApiFlowNodeInput = {
@@ -182,6 +325,22 @@ export type ApolloUser = {
   id: Scalars['ID']['output'];
   lastName: Scalars['String']['output'];
 };
+
+export type AppConfig = {
+  __typename?: 'AppConfig';
+  billingConfig: Scalars['String']['output'];
+};
+
+export type AppNotice = {
+  __typename?: 'AppNotice';
+  id: Scalars['ID']['output'];
+  text: Scalars['String']['output'];
+};
+
+export enum ArrayConditionType {
+  All = 'all',
+  Any = 'any'
+}
 
 export type AuthPayload = {
   __typename?: 'AuthPayload';
@@ -218,7 +377,9 @@ export type BrowserDialTokenInput = {
 export type BrowserDialTokenRes = {
   __typename?: 'BrowserDialTokenRes';
   iceConfig?: Maybe<Scalars['String']['output']>;
+  telephonyProvider: Scalars['String']['output'];
   token: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export enum BrowserDialTokenType {
@@ -277,13 +438,18 @@ export type CallAgent = {
   defaultExtractor?: Maybe<CallAgentExtractor>;
   defaultPrompt?: Maybe<VersionedPrompt>;
   extractors: Array<CallAgentExtractor>;
-  functionDefinitions: Array<FunctionDefinition>;
+  functionDefinitions: Array<CallAgentFunctionDefinition>;
   id: Scalars['ID']['output'];
+  idleMessageConfig: IdleMessageConfig;
+  inboundWebhookResponse: Scalars['Boolean']['output'];
+  inboundWebhookURL?: Maybe<Scalars['String']['output']>;
   ivrDetectionType: IvrDetectionType;
   ivrTaggingText?: Maybe<Scalars['String']['output']>;
   ivrVersionedPrompt?: Maybe<VersionedPrompt>;
   ivrVoice?: Maybe<AiVoice>;
   language: Scalars['String']['output'];
+  maxDurationSeconds: Scalars['Int']['output'];
+  metadata?: Maybe<Scalars['Map']['output']>;
   name: Scalars['String']['output'];
   openingLine?: Maybe<Scalars['String']['output']>;
   openingLineType?: Maybe<OpeningLineType>;
@@ -291,8 +457,10 @@ export type CallAgent = {
   presets: Array<CallDataPreset>;
   prompts: Array<VersionedPrompt>;
   pronunciationMap?: Maybe<PronunciationMap>;
+  transcriberConfig: TranscriberConfig;
   transferNumber?: Maybe<Scalars['String']['output']>;
   utteranceDetectorConfig: UtteranceDetectorConfig;
+  voiceOptionValues?: Maybe<Array<ModelOptionValue>>;
   voiceVolumeLevel: Scalars['Int']['output'];
   workspaceId: Scalars['ID']['output'];
 };
@@ -307,11 +475,50 @@ export type CallAgentExtractor = {
   useVariables: Scalars['Boolean']['output'];
 };
 
-export type CallAgentInput = {
-  defaultVoiceId: Scalars['ID']['input'];
+export type CallAgentExtractorInput = {
+  extractorFields: Array<ExtractorFieldInput>;
   name: Scalars['String']['input'];
-  prompt: Scalars['String']['input'];
+};
+
+export type CallAgentFilter = {
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CallAgentFunctionDefinition = {
+  __typename?: 'CallAgentFunctionDefinition';
+  functionDefinition: FunctionDefinition;
+  lifecycleMessagesOverride?: Maybe<FunctionLifecycleMessages>;
+};
+
+export type CallAgentInput = {
+  backgroundNoiseType?: InputMaybe<Scalars['String']['input']>;
+  defaultExtractor?: InputMaybe<CallAgentExtractorInput>;
+  defaultVersionedPrompt?: InputMaybe<CallAgentVersionedPromptInput>;
+  defaultVoiceId: Scalars['ID']['input'];
+  idleMessageConfig?: InputMaybe<IdleConfigInput>;
+  inboundWebhookResponse?: InputMaybe<Scalars['Boolean']['input']>;
+  inboundWebhookURL?: InputMaybe<Scalars['String']['input']>;
+  language?: InputMaybe<Scalars['String']['input']>;
+  linkedFunctionDefinitionInputs?: InputMaybe<Array<LinkFunctionDefinitionInput>>;
+  maxDurationSeconds?: InputMaybe<Scalars['Int']['input']>;
+  metadata?: InputMaybe<Scalars['Map']['input']>;
+  name: Scalars['String']['input'];
+  openingLine?: InputMaybe<NullableStringInput>;
+  openingLineType?: InputMaybe<OpeningLineType>;
+  transcriberParams?: InputMaybe<TranscriberParamsInput>;
+  transferNumber?: InputMaybe<NullableStringInput>;
+  utteranceDetectorConfig?: InputMaybe<UtteranceDetectorConfigInput>;
+  voiceVolumeLevel?: InputMaybe<Scalars['Int']['input']>;
   workspaceId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+export type CallAgentVersionedPromptInput = {
+  agentType: AgentType;
+  aiModelId: Scalars['ID']['input'];
+  flowDefinition?: InputMaybe<FlowDefinitionInput>;
+  modelOptionValues?: InputMaybe<Array<ModelOptionValueInput>>;
+  name: Scalars['String']['input'];
+  prompt?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CallAgentsResult = {
@@ -376,6 +583,15 @@ export type CloneExtractorInput = {
   extractorId: Scalars['ID']['input'];
 };
 
+export type CloneVoiceInput = {
+  clip: Scalars['Upload']['input'];
+  gender: VoiceGender;
+  model: VoiceModel;
+  name: Scalars['String']['input'];
+  transcription?: InputMaybe<Scalars['String']['input']>;
+  workspaceId: Scalars['ID']['input'];
+};
+
 export type CoachingComment = {
   __typename?: 'CoachingComment';
   comment: Scalars['String']['output'];
@@ -389,6 +605,12 @@ export enum CoachingCommentVisibility {
   ManagerOnly = 'MANAGER_ONLY',
   VisibleToRep = 'VISIBLE_TO_REP'
 }
+
+export type CompleteOnboardingInput = {
+  skipSurvey?: InputMaybe<Scalars['Boolean']['input']>;
+  survey?: InputMaybe<OnboardingSurveyInput>;
+  workspaceId: Scalars['ID']['input'];
+};
 
 export enum ConnectionStatus {
   ApiKeyConnected = 'API_KEY_CONNECTED',
@@ -523,13 +745,20 @@ export type ContactsResult = {
   numContacts: Scalars['Int']['output'];
 };
 
+export type CreateAiEvalConfigInput = {
+  name: Scalars['String']['input'];
+  workspaceId: Scalars['ID']['input'];
+};
+
 export type CreateAiVoiceInput = {
   gender: VoiceGender;
   name: Scalars['String']['input'];
   provider: Scalars['String']['input'];
   providerDetails?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
-  workspaceId?: InputMaybe<Scalars['ID']['input']>;
+  public: Scalars['Boolean']['input'];
+  refAudio?: InputMaybe<Scalars['Upload']['input']>;
+  refText?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateApiKeyInput = {
@@ -546,17 +775,21 @@ export type CreateApiKeyResponse = {
 export type CreateAdHocDialSessionInput = {
   aiVoiceId?: InputMaybe<Scalars['ID']['input']>;
   browserCall?: InputMaybe<Scalars['Boolean']['input']>;
+  callAgentExtractorId?: InputMaybe<Scalars['ID']['input']>;
   callAgentId?: InputMaybe<Scalars['ID']['input']>;
   callAgentInput?: InputMaybe<Scalars['Map']['input']>;
   fromPhoneNumberId?: InputMaybe<Scalars['ID']['input']>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
   timeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
   versionedPromptId?: InputMaybe<Scalars['ID']['input']>;
+  webcallType?: InputMaybe<WebcallType>;
   webhookURL?: InputMaybe<Scalars['String']['input']>;
   workspaceId: Scalars['ID']['input'];
 };
 
 export type CreateAiModelInput = {
+  allowedAgentType: AllowedAgentType;
   modelParams?: InputMaybe<Scalars['String']['input']>;
   modelType: Scalars['String']['input'];
   name: Scalars['String']['input'];
@@ -626,13 +859,17 @@ export type CreateDialCommentInput = {
 export type CreateDialInput = {
   aiVoiceId?: InputMaybe<Scalars['ID']['input']>;
   browserCall?: InputMaybe<Scalars['Boolean']['input']>;
+  callAgentExtractorId?: InputMaybe<Scalars['ID']['input']>;
   callAgentId: Scalars['ID']['input'];
   callAgentInput?: InputMaybe<Scalars['Map']['input']>;
   fromPhoneNumberId?: InputMaybe<Scalars['ID']['input']>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   timeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
   toNumber?: InputMaybe<Scalars['String']['input']>;
   versionedModelId?: InputMaybe<Scalars['ID']['input']>;
+  webcallType?: InputMaybe<WebcallType>;
   webhookURL?: InputMaybe<Scalars['String']['input']>;
+  workspaceId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type CreateDialResult = {
@@ -640,6 +877,7 @@ export type CreateDialResult = {
   dialId: Scalars['ID']['output'];
   dialToken: Scalars['String']['output'];
   sessionId: Scalars['ID']['output'];
+  telephonyProvider: Scalars['String']['output'];
 };
 
 export type CreateDialSessionInput = {
@@ -661,6 +899,12 @@ export type CreateDialSessionInput = {
   workspaceId: Scalars['ID']['input'];
 };
 
+export type CreateDialTaskInput = {
+  callAgentId: Scalars['ID']['input'];
+  inputData: Scalars['Map']['input'];
+  keyInputs: Array<Scalars['String']['input']>;
+};
+
 export type CreateDispositionInput = {
   mappedResult?: InputMaybe<DialResult>;
   name: Scalars['String']['input'];
@@ -671,6 +915,7 @@ export type CreateFunctionDefinitionInput = {
   arguments: Array<ExtractorFieldInput>;
   description: Scalars['String']['input'];
   dsl: Scalars['String']['input'];
+  lifecycleMessages?: InputMaybe<FunctionLifecycleMessagesInput>;
   name: Scalars['String']['input'];
   outputs?: InputMaybe<Array<ExtractorFieldInput>>;
   workspaceId: Scalars['ID']['input'];
@@ -684,7 +929,7 @@ export type CreateKnowledgeBaseInput = {
 export type CreatePricingProductInput = {
   billingName: Scalars['String']['input'];
   descriptiveName: Scalars['String']['input'];
-  priceCents: Scalars['Int']['input'];
+  priceDecimal: Scalars['String']['input'];
 };
 
 export type CreateSalesfloorRoomInput = {
@@ -696,6 +941,13 @@ export type CreateSpamScanInput = {
   phoneNumberIds: Array<Scalars['ID']['input']>;
 };
 
+export type CreateTaskAttemptInput = {
+  fromPhoneNumberId: Scalars['ID']['input'];
+  taskId: Scalars['ID']['input'];
+  toNumber: Scalars['String']['input'];
+  webhookUrl?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateUserApiKeyInput = {
   name: Scalars['String']['input'];
   workspaceId: Scalars['ID']['input'];
@@ -705,6 +957,8 @@ export type CreateVersionedPromptInput = {
   agentType: AgentType;
   aiModelId: Scalars['ID']['input'];
   callAgentId: Scalars['ID']['input'];
+  flowDefinition?: InputMaybe<FlowDefinitionInput>;
+  modelOptionValues?: InputMaybe<Array<ModelOptionValueInput>>;
   name?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;
 };
@@ -741,11 +995,17 @@ export type DncRecordInput = {
   workspaceId: Scalars['ID']['input'];
 };
 
+export type DeleteCallAgentNodeInput = {
+  nodeId: Scalars['ID']['input'];
+  versionedPromptId: Scalars['ID']['input'];
+};
+
 export type Dial = {
   __typename?: 'Dial';
   aiPaused: Scalars['Boolean']['output'];
   aiResult?: Maybe<Scalars['Map']['output']>;
   answerType: AnswerType;
+  billingUsage?: Maybe<Array<UsageLineItem>>;
   browserDial: Scalars['Boolean']['output'];
   callAgent?: Maybe<CallAgent>;
   callDisposition?: Maybe<CallDisposition>;
@@ -757,10 +1017,13 @@ export type Dial = {
   dialComments: Array<DialComment>;
   dialInputs?: Maybe<Scalars['Map']['output']>;
   dialSessionId: Scalars['ID']['output'];
+  dialTaskId?: Maybe<Scalars['ID']['output']>;
   feedbacks: Array<FeedbackType>;
   fromPhoneNumber?: Maybe<PhoneNumber>;
   id: Scalars['ID']['output'];
   incomingCall: Scalars['Boolean']['output'];
+  inferenceEvents?: Maybe<Array<InferenceEvent>>;
+  internalTransferDialId?: Maybe<Scalars['ID']['output']>;
   notes: Scalars['String']['output'];
   phoneField: Scalars['String']['output'];
   recordings: Array<CallRecording>;
@@ -810,6 +1073,7 @@ export type DialFilter = {
   callDirections?: InputMaybe<Array<CallDirection>>;
   callTypes?: InputMaybe<Array<CallType>>;
   extractorValues?: InputMaybe<Array<ExtractorValue>>;
+  inputValues?: InputMaybe<Array<InputValue>>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
   range?: InputMaybe<TimeRange>;
 };
@@ -892,6 +1156,34 @@ export enum DialSessionUpdateReason {
   PassComplete = 'PASS_COMPLETE'
 }
 
+export type DialTask = {
+  __typename?: 'DialTask';
+  completedDial?: Maybe<Dial>;
+  createdAt: Scalars['Time']['output'];
+  id: Scalars['ID']['output'];
+  inputData: Scalars['Map']['output'];
+  keyInputs: Array<Scalars['String']['output']>;
+  results?: Maybe<Scalars['Map']['output']>;
+  status: DialTaskStatus;
+};
+
+export type DialTaskFilter = {
+  callAgents?: InputMaybe<Array<Scalars['ID']['input']>>;
+  inputValues?: InputMaybe<Array<InputValue>>;
+};
+
+export type DialTaskListResult = {
+  __typename?: 'DialTaskListResult';
+  dialTasks: Array<DialTask>;
+  numDialTasks: Scalars['Int']['output'];
+};
+
+export enum DialTaskStatus {
+  Completed = 'COMPLETED',
+  Pending = 'PENDING',
+  Running = 'RUNNING'
+}
+
 export enum DialTreeStrategy {
   Connect = 'CONNECT',
   Skip = 'SKIP'
@@ -955,6 +1247,11 @@ export type FieldOptionsResult = {
   numFieldOptions: Scalars['Int']['output'];
 };
 
+export enum FieldType {
+  Input = 'INPUT',
+  Textarea = 'TEXTAREA'
+}
+
 export type FilterableField = {
   __typename?: 'FilterableField';
   fieldId: Scalars['String']['output'];
@@ -972,15 +1269,24 @@ export enum FlowConditionType {
 
 export type FlowDefinition = {
   __typename?: 'FlowDefinition';
+  aiOpen: Scalars['Boolean']['output'];
+  globalContext?: Maybe<Scalars['String']['output']>;
   nodes: Array<ApiFlowNode>;
+  openingLineType: OpeningLineType;
+  useHistory: Scalars['Boolean']['output'];
 };
 
 export type FlowDefinitionInput = {
-  nodes: Array<ApiFlowNodeInput>;
+  aiOpen?: InputMaybe<Scalars['Boolean']['input']>;
+  globalContext?: InputMaybe<Scalars['String']['input']>;
+  nodes?: InputMaybe<Array<ApiFlowNodeInput>>;
+  openingLineType?: InputMaybe<OpeningLineType>;
+  useHistory?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type FlowTransitionRule = {
   __typename?: 'FlowTransitionRule';
+  arrayConditionType?: Maybe<ArrayConditionType>;
   conditionType: FlowConditionType;
   field?: Maybe<Scalars['String']['output']>;
   transitionNodeId: Scalars['String']['output'];
@@ -989,11 +1295,19 @@ export type FlowTransitionRule = {
 };
 
 export type FlowTransitionRuleInput = {
+  arrayConditionType?: InputMaybe<ArrayConditionType>;
   conditionType: FlowConditionType;
   field?: InputMaybe<Scalars['String']['input']>;
   transitionNodeId: Scalars['String']['input'];
   value?: InputMaybe<Scalars['String']['input']>;
   values?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type FunctionCallRes = {
+  __typename?: 'FunctionCallRes';
+  arguments: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
 };
 
 export type FunctionDefinition = {
@@ -1003,6 +1317,7 @@ export type FunctionDefinition = {
   dslDefinition: Scalars['String']['output'];
   functionType: FunctionType;
   id: Scalars['ID']['output'];
+  lifecycleMessages: FunctionLifecycleMessages;
   name: Scalars['String']['output'];
   outputs: Array<ExtractorField>;
 };
@@ -1017,8 +1332,18 @@ export type FunctionDefinitionsResult = {
   numFunctionDefinitions: Scalars['Int']['output'];
 };
 
+export type FunctionLifecycleMessages = {
+  __typename?: 'FunctionLifecycleMessages';
+  started: Array<Scalars['String']['output']>;
+};
+
+export type FunctionLifecycleMessagesInput = {
+  started: Array<Scalars['String']['input']>;
+};
+
 export enum FunctionType {
   Api = 'API',
+  CallTransfer = 'CALL_TRANSFER',
   Custom = 'CUSTOM',
   KnowledgeBase = 'KNOWLEDGE_BASE'
 }
@@ -1040,9 +1365,52 @@ export enum IvrDetectionType {
   Standard = 'STANDARD'
 }
 
+export type IdleConfigInput = {
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  idleDurationMilliseconds?: InputMaybe<Scalars['Int']['input']>;
+  maxIdleMessages?: InputMaybe<Scalars['Int']['input']>;
+  messages?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type IdleMessageConfig = {
+  __typename?: 'IdleMessageConfig';
+  enabled: Scalars['Boolean']['output'];
+  idleDurationMilliseconds?: Maybe<Scalars['Int']['output']>;
+  maxIdleMessages?: Maybe<Scalars['Int']['output']>;
+  messages?: Maybe<Array<Scalars['String']['output']>>;
+};
+
+export type ImportPhoneNumberInput = {
+  provider: Scalars['String']['input'];
+  providerPhoneNumberId: Scalars['String']['input'];
+  workspaceId: Scalars['ID']['input'];
+};
+
 export type InboundForwardNumberInput = {
   number?: InputMaybe<Scalars['String']['input']>;
   workspaceId: Scalars['ID']['input'];
+};
+
+export type InferenceEvent = {
+  __typename?: 'InferenceEvent';
+  eventType: InferenceEventType;
+  log?: Maybe<Scalars['String']['output']>;
+  playId: Scalars['String']['output'];
+  timestampMs: Scalars['Int']['output'];
+};
+
+export enum InferenceEventType {
+  AudioInferenceFirstAudio = 'AUDIO_INFERENCE_FIRST_AUDIO',
+  LlmInferenceEnded = 'LLM_INFERENCE_ENDED',
+  LlmInferenceFirstToken = 'LLM_INFERENCE_FIRST_TOKEN',
+  LlmInferenceStarted = 'LLM_INFERENCE_STARTED',
+  StartSpeaking = 'START_SPEAKING',
+  TranscriptReceived = 'TRANSCRIPT_RECEIVED'
+}
+
+export type InputValue = {
+  inputName: Scalars['String']['input'];
+  value: Scalars['String']['input'];
 };
 
 export type IntegrationChoicesFilter = {
@@ -1084,6 +1452,11 @@ export enum KnowledgeBaseFileStatus {
   Active = 'ACTIVE',
   Processing = 'PROCESSING'
 }
+
+export type LinkFunctionDefinitionInput = {
+  id: Scalars['ID']['input'];
+  lifecycleMessagesOverride?: InputMaybe<FunctionLifecycleMessagesInput>;
+};
 
 export type LinkPhoneNumberInput = {
   agentId: Scalars['ID']['input'];
@@ -1144,9 +1517,25 @@ export type LookupKnowledgeBaseResult = {
   result: Scalars['String']['output'];
 };
 
+export type MarkTaskCompleteInput = {
+  dialId: Scalars['ID']['input'];
+  taskId: Scalars['ID']['input'];
+};
+
 export type MemberCountRes = {
   __typename?: 'MemberCountRes';
   dialing: Scalars['Int']['output'];
+};
+
+export type ModelOptionValue = {
+  __typename?: 'ModelOptionValue';
+  optionId: Scalars['ID']['output'];
+  value: Scalars['String']['output'];
+};
+
+export type ModelOptionValueInput = {
+  optionId: Scalars['ID']['input'];
+  value: Scalars['String']['input'];
 };
 
 export type MonitorActiveUsersInput = {
@@ -1156,6 +1545,7 @@ export type MonitorActiveUsersInput = {
 export type Mutation = {
   __typename?: 'Mutation';
   addBalance: Workspace;
+  addDialAiEvalRecord: AiEvalConfig;
   addKnowledgeBaseFiles: Array<KnowledgeBaseFile>;
   addPhoneNumber: PhoneNumber;
   agentVariables: Array<Scalars['String']['output']>;
@@ -1164,10 +1554,13 @@ export type Mutation = {
   browserDialToken: BrowserDialTokenRes;
   cloneAgent: CallAgent;
   cloneExtractor: CallAgentExtractor;
+  cloneVoice: AiVoice;
+  completeOnboarding: Workspace;
   connectCall: Scalars['Boolean']['output'];
   createAPIKey: CreateApiKeyResponse;
   createAdHocDialSession: AdHocDialSession;
   createAiChat: AiChat;
+  createAiEvalConfig: AiEvalConfig;
   createAiModel: AiModel;
   createAiVoice: AiVoice;
   createCallAgent: CallAgent;
@@ -1182,56 +1575,70 @@ export type Mutation = {
   createDial: CreateDialResult;
   createDialComment: DialComment;
   createDialSession: DialSession;
+  createDialTask: DialTask;
   createDisposition: CallDisposition;
   createFunctionDefinition: FunctionDefinition;
   createKnowledgeBase: KnowledgeBase;
   createPricingProduct: PricingProduct;
   createSalesfloorRoom: SalesfloorRoom;
   createSpamScan: Array<PhoneNumber>;
+  createTaskAttempt: CreateDialResult;
   createUserApiKey: ApiKey;
   createVersionedPrompt: VersionedPrompt;
   createVoicemail: Voicemail;
   createWorkspace: Workspace;
   deleteAiVoice: Scalars['Boolean']['output'];
+  deleteCallAgent: CallAgent;
+  deleteCallAgentNode: ApiFlowNodeDeleteResult;
   deleteCallDataPreset: Scalars['Boolean']['output'];
   deleteContact?: Maybe<Scalars['ID']['output']>;
   deleteContactList?: Maybe<Scalars['ID']['output']>;
   deleteDisposition: Scalars['ID']['output'];
+  deleteFunctionDefinition: FunctionDefinition;
   deleteKnowledgeBaseFile: Scalars['Boolean']['output'];
   deleteVoicemail: Scalars['ID']['output'];
   dialNumbers: Scalars['String']['output'];
+  dialToken: Scalars['String']['output'];
   editSubscriptionLink: Scalars['String']['output'];
   endDialSession: Scalars['Boolean']['output'];
+  enrollSelfLearning: Workspace;
   genTempToken: Scalars['String']['output'];
   generateVideoToken: VideoTokenResp;
   grantCredits: Workspace;
   hangupAllCalls: Scalars['Boolean']['output'];
   hangupCall: Scalars['Boolean']['output'];
+  importPhoneNumber: PhoneNumber;
   linkPhoneNumber: CallAgent;
   logCall: LogCallResponse;
   logDialFeedback: Scalars['Boolean']['output'];
   login?: Maybe<AuthPayload>;
   lookupKnowledgeBase: LookupKnowledgeBaseResult;
+  markTaskComplete: DialTask;
   newSubscriptionLink: Scalars['String']['output'];
   pauseAI: Dial;
   pauseDialSession: Scalars['Boolean']['output'];
   phoneNumberSearch?: Maybe<Array<Scalars['String']['output']>>;
   removeMemberAccess: Scalars['String']['output'];
-  removePhoneNumber: Scalars['String']['output'];
+  removePhoneNumber: PhoneNumber;
   resyncContacts: Scalars['ID']['output'];
+  runAiEval: AiEvalRun;
   runExtractor: Scalars['Map']['output'];
   setMemberAccess: WorkspaceMember;
   setRecordingConfig: RecordingConfig;
   signUp?: Maybe<AuthPayload>;
   startDialSession: Scalars['Boolean']['output'];
+  submitPhoneNumberOtp: SubmitPhoneNumberOtpResult;
   sudoToken: TokenRes;
   syncDispositions: SyncDispositionsResponse;
   testAiVoice: Scalars['String']['output'];
-  unlinkPhoneNumber: CallAgent;
+  unlinkPhoneNumberAgent: CallAgent;
+  updateAiEvalConfig: AiEvalConfig;
   updateAiModel: AiModel;
   updateAiModelAccess: AiModel;
   updateAiVoice: AiVoice;
+  updateAiVoiceAccess: AiVoice;
   updateApolloSettings: CrmSpecification;
+  updateAppConfig: AppConfig;
   updateCallAgent: CallAgent;
   updateCallAgentExtractor: CallAgentExtractor;
   updateCallAgentNode: ApiFlowNode;
@@ -1250,13 +1657,21 @@ export type Mutation = {
   updateSystemResultMapping: SystemResult;
   updateVersionedPrompt: VersionedPrompt;
   updateWorkspaceBillingConfig: Workspace;
+  updateWorkspacePronunciationMap: Workspace;
+  updateWorkspaceSettings: Workspace;
   updateWorkspaceUserSettings: Workspace;
   updateWorkspaceWebhook: Workspace;
+  verifyPhoneNumber: PhoneNumberVerification;
 };
 
 
 export type MutationAddBalanceArgs = {
   input: AddBalanceInput;
+};
+
+
+export type MutationAddDialAiEvalRecordArgs = {
+  input: AddDialAiEvalRecordInput;
 };
 
 
@@ -1303,6 +1718,16 @@ export type MutationCloneExtractorArgs = {
 };
 
 
+export type MutationCloneVoiceArgs = {
+  input: CloneVoiceInput;
+};
+
+
+export type MutationCompleteOnboardingArgs = {
+  input: CompleteOnboardingInput;
+};
+
+
 export type MutationConnectCallArgs = {
   dialId: Scalars['ID']['input'];
 };
@@ -1320,6 +1745,11 @@ export type MutationCreateAdHocDialSessionArgs = {
 
 export type MutationCreateAiChatArgs = {
   input: CreateChatInput;
+};
+
+
+export type MutationCreateAiEvalConfigArgs = {
+  input: CreateAiEvalConfigInput;
 };
 
 
@@ -1392,6 +1822,11 @@ export type MutationCreateDialSessionArgs = {
 };
 
 
+export type MutationCreateDialTaskArgs = {
+  input: CreateDialTaskInput;
+};
+
+
 export type MutationCreateDispositionArgs = {
   input: CreateDispositionInput;
 };
@@ -1422,6 +1857,11 @@ export type MutationCreateSpamScanArgs = {
 };
 
 
+export type MutationCreateTaskAttemptArgs = {
+  input: CreateTaskAttemptInput;
+};
+
+
 export type MutationCreateUserApiKeyArgs = {
   input: CreateUserApiKeyInput;
 };
@@ -1448,6 +1888,16 @@ export type MutationDeleteAiVoiceArgs = {
 };
 
 
+export type MutationDeleteCallAgentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteCallAgentNodeArgs = {
+  input: DeleteCallAgentNodeInput;
+};
+
+
 export type MutationDeleteCallDataPresetArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1468,6 +1918,11 @@ export type MutationDeleteDispositionArgs = {
 };
 
 
+export type MutationDeleteFunctionDefinitionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteKnowledgeBaseFileArgs = {
   id?: InputMaybe<Scalars['ID']['input']>;
 };
@@ -1484,6 +1939,11 @@ export type MutationDialNumbersArgs = {
 };
 
 
+export type MutationDialTokenArgs = {
+  dialId: Scalars['ID']['input'];
+};
+
+
 export type MutationEditSubscriptionLinkArgs = {
   workspaceId: Scalars['ID']['input'];
 };
@@ -1491,6 +1951,11 @@ export type MutationEditSubscriptionLinkArgs = {
 
 export type MutationEndDialSessionArgs = {
   dialSessionId: Scalars['ID']['input'];
+};
+
+
+export type MutationEnrollSelfLearningArgs = {
+  workspaceId: Scalars['ID']['input'];
 };
 
 
@@ -1516,6 +1981,11 @@ export type MutationHangupCallArgs = {
 };
 
 
+export type MutationImportPhoneNumberArgs = {
+  input: ImportPhoneNumberInput;
+};
+
+
 export type MutationLinkPhoneNumberArgs = {
   input: LinkPhoneNumberInput;
 };
@@ -1538,6 +2008,11 @@ export type MutationLoginArgs = {
 
 export type MutationLookupKnowledgeBaseArgs = {
   input: LookupKnowledgeBaseInput;
+};
+
+
+export type MutationMarkTaskCompleteArgs = {
+  input: MarkTaskCompleteInput;
 };
 
 
@@ -1581,6 +2056,11 @@ export type MutationResyncContactsArgs = {
 };
 
 
+export type MutationRunAiEvalArgs = {
+  input: RunAiEvalInput;
+};
+
+
 export type MutationRunExtractorArgs = {
   dialId: Scalars['ID']['input'];
   extractorId: Scalars['ID']['input'];
@@ -1610,6 +2090,11 @@ export type MutationStartDialSessionArgs = {
 };
 
 
+export type MutationSubmitPhoneNumberOtpArgs = {
+  input: SubmitPhoneNumberOtpInput;
+};
+
+
 export type MutationSudoTokenArgs = {
   userId: Scalars['ID']['input'];
 };
@@ -1626,8 +2111,13 @@ export type MutationTestAiVoiceArgs = {
 };
 
 
-export type MutationUnlinkPhoneNumberArgs = {
-  input: UnlinkPhoneNumberInput;
+export type MutationUnlinkPhoneNumberAgentArgs = {
+  input: UnlinkPhoneNumberAgentInput;
+};
+
+
+export type MutationUpdateAiEvalConfigArgs = {
+  input: UpdateAiEvalConfigInput;
 };
 
 
@@ -1646,8 +2136,18 @@ export type MutationUpdateAiVoiceArgs = {
 };
 
 
+export type MutationUpdateAiVoiceAccessArgs = {
+  input: UpdateAiVoiceAccessInput;
+};
+
+
 export type MutationUpdateApolloSettingsArgs = {
   input: ApolloSettingsInput;
+};
+
+
+export type MutationUpdateAppConfigArgs = {
+  input: UpdateAppConfigInput;
 };
 
 
@@ -1741,6 +2241,16 @@ export type MutationUpdateWorkspaceBillingConfigArgs = {
 };
 
 
+export type MutationUpdateWorkspacePronunciationMapArgs = {
+  input: UpdateWorkspacePronunciationMapInput;
+};
+
+
+export type MutationUpdateWorkspaceSettingsArgs = {
+  input: UpdateWorkspaceSettingsInput;
+};
+
+
 export type MutationUpdateWorkspaceUserSettingsArgs = {
   input: UserWorkspaceSettingsInput;
 };
@@ -1748,6 +2258,11 @@ export type MutationUpdateWorkspaceUserSettingsArgs = {
 
 export type MutationUpdateWorkspaceWebhookArgs = {
   input: WorkspaceWebhookInput;
+};
+
+
+export type MutationVerifyPhoneNumberArgs = {
+  input: VerifyPhoneNumberInput;
 };
 
 export type NodeTransitionResult = {
@@ -1765,9 +2280,17 @@ export type NullableStringInput = {
   value?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type OnboardingSurveyInput = {
+  callVolume: Scalars['String']['input'];
+  companyName: Scalars['String']['input'];
+  referrer?: InputMaybe<Scalars['String']['input']>;
+  useCase: Scalars['String']['input'];
+};
+
 export enum OpeningLineType {
   InboundOnly = 'INBOUND_ONLY',
-  InboundOutbound = 'INBOUND_OUTBOUND'
+  InboundOutbound = 'INBOUND_OUTBOUND',
+  None = 'NONE'
 }
 
 export type OverLimitResult = {
@@ -1798,6 +2321,11 @@ export type PhoneNumberStats = {
   numFails: Scalars['Int']['output'];
 };
 
+export type PhoneNumberVerification = {
+  __typename?: 'PhoneNumberVerification';
+  id: Scalars['ID']['output'];
+};
+
 export type PhoneNumbersResult = {
   __typename?: 'PhoneNumbersResult';
   numPhoneNumbers: Scalars['Int']['output'];
@@ -1809,22 +2337,39 @@ export type PricingProduct = {
   billingName: Scalars['String']['output'];
   descriptiveName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  priceCents: Scalars['Int']['output'];
+  priceDecimal: Scalars['String']['output'];
+};
+
+export type PronunciationEntry = {
+  __typename?: 'PronunciationEntry';
+  ipaPronunciation: Scalars['String']['output'];
+  word: Scalars['String']['output'];
+  wordReplacement?: Maybe<Scalars['String']['output']>;
+};
+
+export type PronunciationEntryInput = {
+  ipaPronunciation: Scalars['String']['input'];
+  word: Scalars['String']['input'];
+  wordReplacement?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type PronunciationMap = {
   __typename?: 'PronunciationMap';
   id: Scalars['ID']['output'];
-  pronunciations: Scalars['String']['output'];
+  pronunciationEntries: Array<PronunciationEntry>;
 };
 
 export type Query = {
   __typename?: 'Query';
   aiChat: AiChat;
+  aiEvalConfig: AiEvalConfig;
+  aiEvalResult: AiEvalResult;
+  aiEvalRun: AiEvalRun;
   aiModel: AiModel;
   aiModels: AiModelsResult;
   aiVoice: AiVoice;
   allWorkspaces: AllWorkspacesResult;
+  appConfig: AppConfig;
   callAgent: CallAgent;
   callDataPreset: CallDataPreset;
   contact: Contact;
@@ -1832,6 +2377,7 @@ export type Query = {
   currentUser: User;
   dial: Dial;
   dialSession: DialSession;
+  dialTask: DialTask;
   extractor: CallAgentExtractor;
   functionDefinition: FunctionDefinition;
   knowledgeBase: KnowledgeBase;
@@ -1853,12 +2399,28 @@ export type QueryAiChatArgs = {
 };
 
 
+export type QueryAiEvalConfigArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryAiEvalResultArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryAiEvalRunArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type QueryAiModelArgs = {
   id: Scalars['ID']['input'];
 };
 
 
 export type QueryAiModelsArgs = {
+  filter?: InputMaybe<AiModelFilter>;
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
 };
@@ -1902,6 +2464,11 @@ export type QueryDialArgs = {
 
 
 export type QueryDialSessionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryDialTaskArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1952,6 +2519,7 @@ export type QueryVoicemailArgs = {
 
 
 export type QueryVoicesArgs = {
+  filter?: InputMaybe<VoiceFilter>;
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
 };
@@ -1959,6 +2527,21 @@ export type QueryVoicesArgs = {
 
 export type QueryWorkspaceArgs = {
   id: Scalars['ID']['input'];
+};
+
+export type QuickstartProject = {
+  __typename?: 'QuickstartProject';
+  agentId: Scalars['ID']['output'];
+  description: Scalars['String']['output'];
+  icon: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  nonQuickstart: Scalars['Boolean']['output'];
+};
+
+export type RangeEndpoint = {
+  __typename?: 'RangeEndpoint';
+  label?: Maybe<Scalars['String']['output']>;
+  value: Scalars['Float']['output'];
 };
 
 export type RecordingConfig = {
@@ -1988,6 +2571,12 @@ export enum RoomMessageType {
   UserJoin = 'USER_JOIN',
   UserLeave = 'USER_LEAVE'
 }
+
+export type RunAiEvalInput = {
+  aiEvalConfigId: Scalars['ID']['input'];
+  callAgentId: Scalars['ID']['input'];
+  versionedPromptId: Scalars['ID']['input'];
+};
 
 export type RunChatQueryInput = {
   aiChatId: Scalars['ID']['input'];
@@ -2148,6 +2737,7 @@ export type SpeakerTextRes = {
   audioEnd: Scalars['Int']['output'];
   audioStart: Scalars['Int']['output'];
   detailType?: Maybe<Scalars['String']['output']>;
+  functionCalls?: Maybe<Array<FunctionCallRes>>;
   knowledgeBaseContext?: Maybe<Array<SpeakerTextKnowledgeBaseContext>>;
   nodeTransitionResult?: Maybe<NodeTransitionResult>;
   speaker: Scalars['String']['output'];
@@ -2164,6 +2754,16 @@ export type StatFilter = {
 export type StatusChangeMessage = {
   __typename?: 'StatusChangeMessage';
   status: Scalars['String']['output'];
+};
+
+export type SubmitPhoneNumberOtpInput = {
+  otp: Scalars['String']['input'];
+  phoneNumberVerificationId: Scalars['ID']['input'];
+};
+
+export type SubmitPhoneNumberOtpResult = {
+  __typename?: 'SubmitPhoneNumberOtpResult';
+  success: Scalars['Boolean']['output'];
 };
 
 export type Subscription = {
@@ -2293,9 +2893,24 @@ export type TokenRes = {
   token: Scalars['String']['output'];
 };
 
-export type UnlinkPhoneNumberInput = {
+export type TranscriberConfig = {
+  __typename?: 'TranscriberConfig';
+  type: Scalars['String']['output'];
+};
+
+export type TranscriberParamsInput = {
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
+  type: Scalars['String']['input'];
+};
+
+export type UnlinkPhoneNumberAgentInput = {
   agentId: Scalars['ID']['input'];
   phoneNumberId: Scalars['ID']['input'];
+};
+
+export type UpdateAiEvalConfigInput = {
+  aiEvalConfigId: Scalars['ID']['input'];
+  promptSnippet?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateAiVoiceInput = {
@@ -2305,22 +2920,37 @@ export type UpdateAiVoiceInput = {
   provider?: InputMaybe<Scalars['String']['input']>;
   providerDetails?: InputMaybe<NullableStringInput>;
   providerId?: InputMaybe<Scalars['String']['input']>;
+  public?: InputMaybe<Scalars['Boolean']['input']>;
+  refAudio?: InputMaybe<Scalars['Upload']['input']>;
+  refText?: InputMaybe<NullableStringInput>;
   workspaceId?: InputMaybe<NullableIdInput>;
 };
 
 export type UpdateAiModelAccessInput = {
-  accessType: AiModelAccessType;
+  accessType: AccessType;
   aiModelId: Scalars['ID']['input'];
   workspaceId: Scalars['ID']['input'];
 };
 
 export type UpdateAiModelInput = {
   aiModelId: Scalars['ID']['input'];
+  allowedAgentType?: InputMaybe<AllowedAgentType>;
   modelParams?: InputMaybe<Scalars['String']['input']>;
   modelType?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   providerModelId?: InputMaybe<Scalars['String']['input']>;
   public?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpdateAiVoiceAccessInput = {
+  accessType?: InputMaybe<AccessType>;
+  aiVoiceId: Scalars['ID']['input'];
+  providerDetails?: InputMaybe<Scalars['String']['input']>;
+  workspaceId: Scalars['ID']['input'];
+};
+
+export type UpdateAppConfigInput = {
+  billingConfigJSON: Scalars['String']['input'];
 };
 
 export type UpdateCallAgentExtractorInput = {
@@ -2336,18 +2966,25 @@ export type UpdateCallAgentInput = {
   backgroundNoiseType?: InputMaybe<Scalars['String']['input']>;
   callAgentExtractorId?: InputMaybe<NullableStringInput>;
   defaultPromptId?: InputMaybe<Scalars['ID']['input']>;
+  idleMessageConfig?: InputMaybe<IdleConfigInput>;
+  inboundWebhookResponse?: InputMaybe<Scalars['Boolean']['input']>;
+  inboundWebhookURL?: InputMaybe<Scalars['String']['input']>;
   ivrDetectionType?: InputMaybe<IvrDetectionType>;
   ivrTaggingText?: InputMaybe<NullableStringInput>;
   ivrVersionedPromptId?: InputMaybe<NullableStringInput>;
   ivrVoiceId?: InputMaybe<NullableStringInput>;
   language?: InputMaybe<Scalars['String']['input']>;
-  linkedFunctionDefinitionIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  linkedFunctionDefinitionInputs?: InputMaybe<Array<LinkFunctionDefinitionInput>>;
+  maxDurationSeconds?: InputMaybe<Scalars['Int']['input']>;
+  metadata?: InputMaybe<Scalars['Map']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   openingLine?: InputMaybe<NullableStringInput>;
   openingLineType?: InputMaybe<OpeningLineType>;
+  transcriberParams?: InputMaybe<TranscriberParamsInput>;
   transferNumber?: InputMaybe<NullableStringInput>;
   utteranceDetectorConfig?: InputMaybe<UtteranceDetectorConfigInput>;
   voiceId?: InputMaybe<Scalars['ID']['input']>;
+  voiceOptionValues?: InputMaybe<Array<ModelOptionValueInput>>;
   voiceVolumeLevel?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -2358,7 +2995,7 @@ export type UpdateCallAgentNodeInput = {
 
 export type UpdateCallAgentPronunciationMapInput = {
   agentId: Scalars['ID']['input'];
-  pronunciationMapJson?: InputMaybe<Scalars['String']['input']>;
+  pronunciationEntries: Array<PronunciationEntryInput>;
 };
 
 export type UpdateDialMetadataInput = {
@@ -2386,6 +3023,7 @@ export type UpdateFunctionDefinitionInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   dsl?: InputMaybe<Scalars['String']['input']>;
   functionDefinitionId: Scalars['ID']['input'];
+  lifecycleMessages?: InputMaybe<FunctionLifecycleMessagesInput>;
   name?: InputMaybe<Scalars['String']['input']>;
   outputs?: InputMaybe<Array<ExtractorFieldInput>>;
 };
@@ -2409,6 +3047,7 @@ export type UpdateVersionedPromptInput = {
   aiModelId?: InputMaybe<Scalars['ID']['input']>;
   flowDefinition?: InputMaybe<FlowDefinitionInput>;
   flowDefinitionJSON?: InputMaybe<Scalars['String']['input']>;
+  modelOptionValues?: InputMaybe<Array<ModelOptionValueInput>>;
   name?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;
   versionedPromptId: Scalars['ID']['input'];
@@ -2424,6 +3063,16 @@ export type UpdateWorkspaceCustomDetectorRegexps = {
   workspaceId: Scalars['ID']['input'];
 };
 
+export type UpdateWorkspacePronunciationMapInput = {
+  pronunciationEntries: Array<PronunciationEntryInput>;
+  workspaceId: Scalars['ID']['input'];
+};
+
+export type UpdateWorkspaceSettingsInput = {
+  defaultWebcallType?: InputMaybe<WebcallType>;
+  workspaceId: Scalars['ID']['input'];
+};
+
 export type UsageInfo = {
   __typename?: 'UsageInfo';
   limit: Scalars['Int']['output'];
@@ -2434,8 +3083,8 @@ export type UsageLineItem = {
   __typename?: 'UsageLineItem';
   description: Scalars['String']['output'];
   quantity: Scalars['Int']['output'];
-  totalPriceCents: Scalars['Int']['output'];
-  unitPriceCents: Scalars['Int']['output'];
+  totalPriceDecimal: Scalars['String']['output'];
+  unitPriceDecimal: Scalars['String']['output'];
 };
 
 export type User = {
@@ -2506,12 +3155,14 @@ export type UserWorkspaceSettingsInput = {
 export type UtteranceDetectorConfig = {
   __typename?: 'UtteranceDetectorConfig';
   basic?: Maybe<BasicUtteranceDetectorConfig>;
+  interruptionPlayTimeMs: Scalars['Int']['output'];
   type: UtteranceDetectorConfigType;
 };
 
 export type UtteranceDetectorConfigInput = {
   basic?: InputMaybe<BasicUtteranceDetectorConfigInput>;
-  type: UtteranceDetectorConfigType;
+  interruptionPlayTimeMs?: InputMaybe<Scalars['Int']['input']>;
+  type?: InputMaybe<UtteranceDetectorConfigType>;
 };
 
 export enum UtteranceDetectorConfigType {
@@ -2526,6 +3177,11 @@ export enum UtteranceDetectorSensitivity {
   UltraFast = 'ULTRA_FAST'
 }
 
+export type VerifyPhoneNumberInput = {
+  phoneNumber: Scalars['String']['input'];
+  workspaceId: Scalars['ID']['input'];
+};
+
 export type VersionedPrompt = {
   __typename?: 'VersionedPrompt';
   agentType: AgentType;
@@ -2533,6 +3189,7 @@ export type VersionedPrompt = {
   createdAt: Scalars['Time']['output'];
   flowDefinition?: Maybe<FlowDefinition>;
   id: Scalars['ID']['output'];
+  modelOptionValues?: Maybe<Array<ModelOptionValue>>;
   name: Scalars['String']['output'];
   prompt?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['Time']['output'];
@@ -2559,6 +3216,16 @@ export enum VoiceGender {
   Neutral = 'NEUTRAL'
 }
 
+export enum VoiceModel {
+  Default = 'DEFAULT',
+  Sesame = 'SESAME'
+}
+
+export enum VoiceTier {
+  Premium = 'PREMIUM',
+  Standard = 'STANDARD'
+}
+
 export type Voicemail = {
   __typename?: 'Voicemail';
   downloadUrl: Scalars['String']['output'];
@@ -2566,12 +3233,18 @@ export type Voicemail = {
   name: Scalars['String']['output'];
 };
 
+export enum WebcallType {
+  Legacy = 'legacy',
+  Standard = 'standard'
+}
+
 export type Workspace = {
   __typename?: 'Workspace';
   activeDials: Array<Dial>;
   activeIncomingCalls: Array<Dial>;
   activeUsers: Array<User>;
   aggregateStats: AggregateStats;
+  aiEvalConfigs: Array<AiEvalConfig>;
   aiModels: AiModelsResult;
   apiKeys?: Maybe<Array<ApiKey>>;
   apolloPurposes: Array<ApolloPurpose>;
@@ -2584,7 +3257,9 @@ export type Workspace = {
   crmSpecification: CrmSpecification;
   crmSpecifications: Array<CrmSpecification>;
   customDetectorRegexps?: Maybe<Scalars['String']['output']>;
+  defaultWebcallType: WebcallType;
   dialSessions: DialSessionListResult;
+  dialTasks: DialTaskListResult;
   dials: DialListResult;
   dispositions: Array<CallDisposition>;
   functionDefinitions: FunctionDefinitionsResult;
@@ -2597,11 +3272,17 @@ export type Workspace = {
   member: WorkspaceMember;
   memberCount: Scalars['Int']['output'];
   name?: Maybe<Scalars['String']['output']>;
+  notice?: Maybe<AppNotice>;
+  onboardingSurveyCompleted: Scalars['Boolean']['output'];
   overLimit: OverLimitResult;
+  phoneNumberVerified: Scalars['Boolean']['output'];
   phoneNumbers: PhoneNumbersResult;
+  pronunciationMap?: Maybe<PronunciationMap>;
+  quickstartProjects: Array<QuickstartProject>;
   recordingConfig?: Maybe<RecordingConfig>;
   salesfloorRooms: Array<SalesfloorRoom>;
   salesfloorType: SalesfloorType;
+  selfLearningEnrolled: Scalars['Boolean']['output'];
   spamUsage: UsageInfo;
   subscription?: Maybe<BillingSubscription>;
   systemResults: Array<SystemResult>;
@@ -2637,6 +3318,7 @@ export type WorkspaceBillingUsageArgs = {
 
 
 export type WorkspaceCallAgentsArgs = {
+  filter?: InputMaybe<CallAgentFilter>;
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
 };
@@ -2656,6 +3338,13 @@ export type WorkspaceCrmSpecificationArgs = {
 
 export type WorkspaceDialSessionsArgs = {
   filter?: InputMaybe<DialSessionFilter>;
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+};
+
+
+export type WorkspaceDialTasksArgs = {
+  filter?: InputMaybe<DialTaskFilter>;
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
 };
@@ -2781,13 +3470,6 @@ export type WorkspaceWebhookInput = {
   workspaceId: Scalars['ID']['input'];
 };
 
-export type CreateAdHocDialSessionMutationVariables = Exact<{
-  input: CreateAdHocDialSessionInput;
-}>;
-
-
-export type CreateAdHocDialSessionMutation = { __typename?: 'Mutation', createAdHocDialSession: { __typename?: 'AdHocDialSession', id: string, telephonyProvider: string } };
-
 export type StartDialSessionMutationVariables = Exact<{
   sessionId: Scalars['ID']['input'];
 }>;
@@ -2824,7 +3506,7 @@ export type BrowserDialTokenMutationVariables = Exact<{
 }>;
 
 
-export type BrowserDialTokenMutation = { __typename?: 'Mutation', browserDialToken: { __typename?: 'BrowserDialTokenRes', token: string, iceConfig?: string | null } };
+export type BrowserDialTokenMutation = { __typename?: 'Mutation', browserDialToken: { __typename?: 'BrowserDialTokenRes', token: string, iceConfig?: string | null, telephonyProvider: string, url?: string | null } };
 
 export type ConnectSessionSubscriptionVariables = Exact<{
   sessionId: Scalars['ID']['input'];
@@ -2834,10 +3516,9 @@ export type ConnectSessionSubscriptionVariables = Exact<{
 export type ConnectSessionSubscription = { __typename?: 'Subscription', connectSession: { __typename?: 'SessionMessage', messageType: SessionMessageType, content?: { __typename: 'ContactCompleteMessage' } | { __typename: 'DialConnectMessage', dialId: string } | { __typename: 'DialsUpdatedMessage', contactId?: string | null, contactComplete: boolean, dials: Array<{ __typename?: 'Dial', id: string, status: string, answerType: AnswerType, phoneField: string, callDispositionId?: string | null, systemResultType?: SystemResultType | null, toNumber: string }> } | { __typename: 'SessionUpdatedMessage', reason?: DialSessionUpdateReason | null, dialSession?: { __typename?: 'DialSession', id: string, status: DialSessionStatus } | null } | null } };
 
 
-export const CreateAdHocDialSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateAdHocDialSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateAdHocDialSessionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createAdHocDialSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"telephonyProvider"}}]}}]}}]} as unknown as DocumentNode<CreateAdHocDialSessionMutation, CreateAdHocDialSessionMutationVariables>;
 export const StartDialSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StartDialSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startDialSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialSessionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}}}]}]}}]} as unknown as DocumentNode<StartDialSessionMutation, StartDialSessionMutationVariables>;
 export const HangupCallDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"HangupCall"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dropVoicemail"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"transferNumber"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hangupCall"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}},{"kind":"Argument","name":{"kind":"Name","value":"dropVoicemail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dropVoicemail"}}},{"kind":"Argument","name":{"kind":"Name","value":"transferNumber"},"value":{"kind":"Variable","name":{"kind":"Name","value":"transferNumber"}}}]}]}}]} as unknown as DocumentNode<HangupCallMutation, HangupCallMutationVariables>;
 export const SetPausedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetPaused"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pauseStatus"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pauseAI"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}},{"kind":"Argument","name":{"kind":"Name","value":"pauseStatus"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pauseStatus"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SetPausedMutation, SetPausedMutationVariables>;
 export const RefreshTranscriptDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"RefreshTranscript"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"watchTranscript"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"speaker"}},{"kind":"Field","name":{"kind":"Name","value":"text"}},{"kind":"Field","name":{"kind":"Name","value":"detailType"}}]}}]}}]} as unknown as DocumentNode<RefreshTranscriptSubscription, RefreshTranscriptSubscriptionVariables>;
-export const BrowserDialTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"BrowserDialToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BrowserDialTokenInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browserDialToken"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"iceConfig"}}]}}]}}]} as unknown as DocumentNode<BrowserDialTokenMutation, BrowserDialTokenMutationVariables>;
+export const BrowserDialTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"BrowserDialToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BrowserDialTokenInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browserDialToken"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"iceConfig"}},{"kind":"Field","name":{"kind":"Name","value":"telephonyProvider"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}}]} as unknown as DocumentNode<BrowserDialTokenMutation, BrowserDialTokenMutationVariables>;
 export const ConnectSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"ConnectSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"sessionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"messageType"}},{"kind":"Field","name":{"kind":"Name","value":"content"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DialsUpdatedMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contactId"}},{"kind":"Field","name":{"kind":"Name","value":"dials"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"answerType"}},{"kind":"Field","name":{"kind":"Name","value":"phoneField"}},{"kind":"Field","name":{"kind":"Name","value":"callDispositionId"}},{"kind":"Field","name":{"kind":"Name","value":"systemResultType"}},{"kind":"Field","name":{"kind":"Name","value":"toNumber"}}]}},{"kind":"Field","name":{"kind":"Name","value":"contactComplete"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DialConnectMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dialId"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SessionUpdatedMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dialSession"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reason"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ConnectSessionSubscription, ConnectSessionSubscriptionVariables>;
