@@ -25,9 +25,13 @@ export class LivekitCall {
 
   mute(status: boolean) {
     if (status) {
-      this._room.localParticipant.setMicrophoneEnabled(false);
+      this._room.localParticipant.setMicrophoneEnabled(false).then(() => {
+        this.sendEvent('mute', true);
+      });
     } else {
-      this._room.localParticipant.setMicrophoneEnabled(true);
+      this._room.localParticipant.setMicrophoneEnabled(true).then(() => {
+        this.sendEvent('mute', false);
+      });
     }
   }
 
