@@ -13,7 +13,7 @@ export class LivekitCall {
   _room: Room;
   _params: any;
   _handlers: {
-    ev: 'mute' | 'disconnect';
+    ev: 'mute' | 'disconnect' | 'track-added';
     fn: (...args: any[]) => void;
   }[];
 
@@ -21,6 +21,40 @@ export class LivekitCall {
     this._room = room;
     this._params = {};
     this._handlers = [];
+    this._room
+      .on(RoomEvent.TrackSubscribed, (...args) => {
+        this.handleTrackSubscribed(...args);
+      })
+      .on(RoomEvent.TrackUnsubscribed, (...args) => this.handleTrackUnsubscribed(...args))
+      .on(RoomEvent.Disconnected, () => this.disconnect());
+  }
+
+  handleTrackSubscribed(
+    track: RemoteTrack,
+    _publication: RemoteTrackPublication,
+    _participant: RemoteParticipant
+  ) {
+    console.log('Track subscribed', track);
+
+    if (track.kind === 'audio') {
+      const audioElement = track.attach();
+      document.body.appendChild(audioElement);
+      audioElement.style.display = 'none';
+    }
+
+    if (_participant.identity === 'livekit-ai-processor') {
+      this.sendEvent('track-added', track.mediaStreamTrack);
+    }
+  }
+
+  handleTrackUnsubscribed(
+    track: RemoteTrack,
+    _publication: RemoteTrackPublication,
+    _participant: RemoteParticipant
+  ) {
+    if (track.kind === 'audio') {
+      console.log('Track unsubscribed', track);
+    }
   }
 
   mute(status: boolean) {
@@ -57,7 +91,7 @@ export class LivekitCall {
     }
   }
 
-  on(ev: 'mute' | 'disconnect', fn: (...args: any[]) => void) {
+  on(ev: 'mute' | 'disconnect' | 'track-added', fn: (...args: any[]) => void) {
     this._handlers.push({
       ev,
       fn,
@@ -77,11 +111,6 @@ export class LivekitDevice {
 
     // speeds up connection attempt
     this._room.prepareConnection(this._url, this._token);
-
-    this._room
-      .on(RoomEvent.TrackSubscribed, this.handleTrackSubscribed)
-      .on(RoomEvent.TrackUnsubscribed, this.handleTrackUnsubscribed)
-      .on(RoomEvent.Disconnected, this.disconnect);
   }
 
   static async getDevice(sessionToken: string, url: string): Promise<LivekitDevice> {
@@ -91,28 +120,6 @@ export class LivekitDevice {
 
   disconnect() {
     this._room.disconnect();
-  }
-
-  handleTrackSubscribed(
-    track: RemoteTrack,
-    _publication: RemoteTrackPublication,
-    _participant: RemoteParticipant
-  ) {
-    if (track.kind === 'audio') {
-      const audioElement = track.attach();
-      document.body.appendChild(audioElement);
-      audioElement.style.display = 'none';
-    }
-  }
-
-  handleTrackUnsubscribed(
-    track: RemoteTrack,
-    _publication: RemoteTrackPublication,
-    _participant: RemoteParticipant
-  ) {
-    if (track.kind === 'audio') {
-      console.log('Track unsubscribed', track);
-    }
   }
 
   async connect(_p: any): Promise<VogentAudioConn> {

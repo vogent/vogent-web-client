@@ -12,7 +12,7 @@ export interface VogentAudioConn {
    * - 'disconnect': Fired when the connection is terminated
    * @param fn - Callback function to handle the event
    */
-  on: (ev: 'mute' | 'disconnect', fn: (...args: any[]) => void) => void;
+  on: (ev: 'mute' | 'disconnect' | 'track-added', fn: (...args: any[]) => void) => void;
 
   /**
    * Mute or unmute the audio connection

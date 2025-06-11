@@ -7,7 +7,7 @@ export class VonageCall {
   _liveListen: boolean;
   _params: any;
   _handlers: {
-    ev: 'mute' | 'disconnect';
+    ev: 'mute' | 'disconnect' | 'track-added';
     fn: (...args: any[]) => void;
   }[];
 
