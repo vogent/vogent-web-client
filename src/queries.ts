@@ -53,7 +53,6 @@ export const AI_CONNECT_SESSION = gql(`
             id
             status
             answerType
-            phoneField
             callDispositionId
             systemResultType
             toNumber
