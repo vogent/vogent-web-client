@@ -979,10 +979,10 @@
   resolved "https://registry.yarnpkg.com/@livekit/mutex/-/mutex-1.1.1.tgz#72492b611d55be8130ba2271b7a436d94b1bc6d4"
   integrity sha512-EsshAucklmpuUAfkABPxJNhzj9v2sG7JuzFDL4ML1oJQSV14sqrpTYnsaOudMAw9yOaW53NU3QQTlUQoRs4czw==
 
-"@livekit/protocol@1.38.0":
-  version "1.38.0"
-  resolved "https://registry.yarnpkg.com/@livekit/protocol/-/protocol-1.38.0.tgz#2b34a5078532beb9c90c6260944f6053e8a62ba8"
-  integrity sha512-XX6ulvsE1XCN18LVf3ydHN7Ri1Z1M1P5dQdjnm5nVDsSqUL12Vbo/4RKcRlCEXAg2qB62mKjcaVLXVwkfXggkg==
+"@livekit/protocol@1.42.0":
+  version "1.42.0"
+  resolved "https://registry.yarnpkg.com/@livekit/protocol/-/protocol-1.42.0.tgz#10f225a189e1b238ae69291f253f4921e8ff4a72"
+  integrity sha512-42sYSCay2PZrn5yHHt+O3RQpTElcTrA7bqg7iYbflUApeerA5tUCJDr8Z4abHsYHVKjqVUbkBq/TPmT3X6aYOQ==
   dependencies:
     "@bufbuild/protobuf" "^1.10.0"
 
@@ -2052,6 +2052,11 @@ jose@^5.0.0:
   resolved "https://registry.yarnpkg.com/jose/-/jose-5.9.6.tgz#77f1f901d88ebdc405e57cce08d2a91f47521883"
   integrity sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ==
 
+jose@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-6.1.0.tgz#96285365689d16f2845a353964d2284bf19f464c"
+  integrity sha512-TTQJyoEoKcC1lscpVDCSsVgYzUDg/0Bt3WE//WiTPK6uOCQC2KZS4MpugbMWt/zyjkopgZoXhZuCi00gLudfUA==
+
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -2106,14 +2111,15 @@ listr2@^4.0.5:
     through "^2.3.8"
     wrap-ansi "^7.0.0"
 
-livekit-client@^2.13.3:
-  version "2.13.3"
-  resolved "https://registry.yarnpkg.com/livekit-client/-/livekit-client-2.13.3.tgz#66ab1ae2f1dff611b5506da2bde92af06ee20f7c"
-  integrity sha512-5lX9bqN2ZKjt1RqJqO1Vz9uplrnCLIpbG3Y8h7z0ui2adk5oahohV0m1F2ZEaIJTfQgXhX1iVbSYrVNwTzwRDQ==
+livekit-client@2.15.8:
+  version "2.15.8"
+  resolved "https://registry.yarnpkg.com/livekit-client/-/livekit-client-2.15.8.tgz#6eede377db2392110455dffd716ad5c01b81d02a"
+  integrity sha512-M+GnlmoY+JOfGGhDov5f4V273YZ9DuWFBaPwz42fliC3TsFTzEcJoRqqE7uLtEGAnloqbLPk+sIvW/XSU4Z4/Q==
   dependencies:
     "@livekit/mutex" "1.1.1"
-    "@livekit/protocol" "1.38.0"
+    "@livekit/protocol" "1.42.0"
     events "^3.3.0"
+    jose "^6.1.0"
     loglevel "^1.9.2"
     sdp-transform "^2.15.0"
     ts-debounce "^4.0.0"
