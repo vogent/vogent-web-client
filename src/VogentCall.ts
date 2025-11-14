@@ -40,7 +40,13 @@
  * @module VogentCall
  */
 
-import { ApolloClient, createHttpLink, InMemoryCache, NormalizedCacheObject, split } from '@apollo/client/core';
+import {
+  ApolloClient,
+  createHttpLink,
+  InMemoryCache,
+  NormalizedCacheObject,
+  split,
+} from '@apollo/client/core';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition, ObservableSubscription } from '@apollo/client/utilities';
@@ -69,7 +75,7 @@ export type Transcript = {
   text: string;
   /** The speaker of the transcript currently either 'HUMAN' or 'AI', or 'IVR' if IVR detection is enabled */
   speaker: string;
-}[]
+}[];
 
 /**
  * VogentCall manages the lifecycle and state of a voice call session
@@ -106,21 +112,24 @@ export class VogentCall {
    * @param dialDetails.dialId - Unique dial/call identifier
    * @param dialDetails.token - Authentication token
    * @param config - Configuration options
-   * @param config.baseUrl - API base URL (defaults to 'https://api.getelto.com')
+   * @param config.baseUrl - API base URL (defaults to 'https://api.vogent.ai')
    */
-  constructor(dialDetails: {
-    sessionId: string;
-    dialId: string;
-    token: string;
-  }, config: {
-    baseUrl: string;
-  } = {
-    baseUrl: 'https://api.getelto.com',
-  }) {
+  constructor(
+    dialDetails: {
+      sessionId: string;
+      dialId: string;
+      token: string;
+    },
+    config: {
+      baseUrl: string;
+    } = {
+      baseUrl: 'https://api.vogent.ai',
+    }
+  ) {
     this._handlers = [];
     this.sessionId = dialDetails.sessionId;
     this.dialId = dialDetails.dialId;
-    let token = dialDetails.token;
+    const token = dialDetails.token;
 
     const authLink = setContext((_, { headers }) => {
       return {
@@ -137,10 +146,10 @@ export class VogentCall {
       uri: `${this.baseUrl}/query`,
       headers: {
         Authorization: `Bearer ${token}`,
-      }
+      },
     });
 
-    const wsBaseUrl = this.baseUrl.replace('https://', 'wss://').replace("http://", "ws://");
+    const wsBaseUrl = this.baseUrl.replace('https://', 'wss://').replace('http://', 'ws://');
 
     const wsLink = new GraphQLWsLink(
       createClient({
@@ -200,15 +209,17 @@ export class VogentCall {
           return;
         }
 
-        fn(data.watchTranscript.map((t) => ({
-          text: t.text,
-          speaker: t.speaker,
-        })));
+        fn(
+          data.watchTranscript.map((t) => ({
+            text: t.text,
+            speaker: t.speaker,
+          }))
+        );
       });
 
     return () => {
       subscription.unsubscribe();
-    }
+    };
   }
 
   /**
@@ -240,20 +251,24 @@ export class VogentCall {
    * to the call who the AI should not interact with.)
    * @returns Promise resolving to audio connection handle
    */
-  async connectAudio(liveListen: boolean = false): Promise<VogentAudioConn> {
+  async connectAudio(liveListen = false): Promise<VogentAudioConn> {
     const token = await this.client.mutate({
       mutation: AI_GET_TOKEN,
       variables: {
         input: {
           type: BrowserDialTokenType.DialSession,
           dialSessionId: this.sessionId,
+          liveListen: liveListen,
         },
       },
     });
 
     let d: VogentDevice;
     if (token.data!.browserDialToken.telephonyProvider === 'livekit') {
-      d = await LivekitDevice.getDevice(token.data!.browserDialToken.token, token.data!.browserDialToken.url);
+      d = await LivekitDevice.getDevice(
+        token.data!.browserDialToken.token,
+        token.data!.browserDialToken.url ?? ''
+      );
     } else {
       d = await VonageDevice.getDevice(token.data!.browserDialToken.token, true);
     }

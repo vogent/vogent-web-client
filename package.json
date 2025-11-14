@@ -1,6 +1,6 @@
 {
   "name": "@vogent/vogent-web-client",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "dependencies": {
     "@apollo/client": "^3.12.4",
@@ -9,20 +9,37 @@
     "graphql-ws": "^5.16.0",
     "livekit-client": "2.15.8"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "publishConfig": {
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+      "dist"
+    ],
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "yarn build"
+    "build": "bun run tsc",
+    "prepublishOnly": "bun run build",
+    "release:patch": "bun version patch && git push && git push --tags",
+    "release:minor": "bun version minor && git push && git push --tags",
+    "release:major": "bun version major && git push && git push --tags"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.3",

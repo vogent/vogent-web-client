@@ -1,0 +1,35 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v0.1.5, etc.
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build package
+        run: bun run build
+
+      - name: Publish to NPM
+        run: bun publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

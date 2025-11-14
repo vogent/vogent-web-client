@@ -73,7 +73,7 @@ export class VonageCall {
     }
   }
 
-  on(ev: 'mute' | 'disconnect', fn: (...args: any[]) => void) {
+  on(ev: 'mute' | 'disconnect' | 'track-added', fn: (...args: any[]) => void) {
     this._handlers.push({
       ev,
       fn,
