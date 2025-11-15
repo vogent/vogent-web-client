@@ -29,7 +29,8 @@ jobs:
       - name: Build package
         run: bun run build
 
+      - name: Pack package
+        run: bun pm pack --filename package.tgz
+
       - name: Publish to NPM
-        run: bun publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: bunx npm publish package.tgz --provenance --access public
