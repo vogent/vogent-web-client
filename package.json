@@ -21,6 +21,10 @@
       "default": "./src/index.ts"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "github:vogent/vogent-web-client"
+  },
   "publishConfig": {
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
