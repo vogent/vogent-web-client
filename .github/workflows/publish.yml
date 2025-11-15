@@ -32,6 +32,11 @@ jobs:
       - name: Pack package
         run: bun pm pack --filename package.tgz
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Publish to NPM
         run: |
           npm install -g npm@latest
