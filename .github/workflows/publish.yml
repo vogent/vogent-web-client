@@ -2,6 +2,15 @@ name: Publish to NPM
 
 on:
   workflow_dispatch:
+    inputs:
+      registry:
+        description: 'Target registry'
+        required: true
+        type: choice
+        default: 'npm'
+        options:
+          - npm
+          - github
   push:
     tags:
       - 'v*.*.*'  # Triggers on version tags like v1.0.0, v0.1.5, etc.
@@ -13,6 +22,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: write  # Required for GitHub Packages
 
     steps:
       - name: Checkout code
@@ -35,9 +45,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: ${{ inputs.registry == 'github' && 'https://npm.pkg.github.com' || 'https://registry.npmjs.org' }}
 
       - name: Publish to NPM
+        if: inputs.registry == 'npm' || github.event_name == 'push'
         run: |
           npm install -g npm@latest
           npm publish package.tgz --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to GitHub Packages
+        if: inputs.registry == 'github' && github.event_name == 'workflow_dispatch'
+        run: |
+          npm install -g npm@latest
+          npm publish package.tgz --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
