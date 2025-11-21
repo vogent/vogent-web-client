@@ -54,7 +54,9 @@ import {
   BrowserDialTokenType,
   Dial,
   DialsUpdatedMessage,
+  LiveTranscriptEventType,
   SessionMessageType,
+  TranscriptLine,
 } from './__generated__/graphql';
 import {
   AI_CONNECT_SESSION,
@@ -74,6 +76,9 @@ export type Transcript = {
   /** The text of the transcript */
   text: string;
   /** The speaker of the transcript currently either 'HUMAN' or 'AI', or 'IVR' if IVR detection is enabled */
+  role: string;
+
+  /** @deprecated Use role instead */
   speaker: string;
 }[];
 
@@ -195,6 +200,19 @@ export class VogentCall {
    * @returns Function to unsubscribe from transcript updates
    */
   monitorTranscript(fn: (transcript: Transcript) => void): () => void {
+    const transcriptLines: TranscriptLine[] = [];
+    const liveTranscriptLines: Record<string, TranscriptLine> = {};
+
+    let appendToTranscriptLines = (transcriptLine: TranscriptLine) => {
+      delete liveTranscriptLines[transcriptLine.role];
+
+      if (transcriptLines.length > 0 && transcriptLine.role === transcriptLines[transcriptLines.length - 1].role) {
+        transcriptLines[transcriptLines.length - 1].text += ' ' + transcriptLine.text;
+      } else {
+        transcriptLines.push(transcriptLine);
+      }
+    };
+
     const subscription = this.client
       .subscribe({
         query: REFRESH_TRANSCRIPT,
@@ -205,16 +223,30 @@ export class VogentCall {
       .subscribe(({ data }) => {
         console.log('monitorTranscript', data);
 
-        if (!data?.watchTranscript) {
+        if (!data?.watchLiveTranscriptEvents) {
           return;
         }
 
-        fn(
-          data.watchTranscript.map((t) => ({
-            text: t.text,
-            speaker: t.speaker,
-          }))
-        );
+        switch (data.watchLiveTranscriptEvents.eventType) {
+          case LiveTranscriptEventType.Final:
+            appendToTranscriptLines(data.watchLiveTranscriptEvents.transcriptLine! as TranscriptLine);
+            break;
+          case LiveTranscriptEventType.Live:
+            liveTranscriptLines[data.watchLiveTranscriptEvents.transcriptLine!.role] = data.watchLiveTranscriptEvents.transcriptLine! as TranscriptLine;
+            break;
+          default:
+            break;
+        }
+
+        fn(transcriptLines.map((t) => ({
+          text: t.text,
+          role: t.role,
+          speaker: t.speaker,
+        })).concat(Object.values(liveTranscriptLines).map((t) => ({
+          text: t.text,
+          role: t.role,
+          speaker: t.speaker,
+        }))));
       });
 
     return () => {

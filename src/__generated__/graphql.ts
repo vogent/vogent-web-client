@@ -24,7 +24,7 @@ export type AiChat = {
   __typename?: 'AIChat';
   id: Scalars['ID']['output'];
   prompt: Scalars['String']['output'];
-  transcript: Array<SpeakerTextRes>;
+  transcript: Array<TranscriptLine>;
 };
 
 export type AiEvalAggregateResult = {
@@ -80,7 +80,7 @@ export type AiEvalRecordsResult = {
 export type AiEvalResult = {
   __typename?: 'AIEvalResult';
   createdAt: Scalars['Time']['output'];
-  evalTranscript: Array<SpeakerTextRes>;
+  evalTranscript: Array<TranscriptLine>;
   id: Scalars['ID']['output'];
   numAlerts: Scalars['Int']['output'];
   record: AiEvalRecord;
@@ -211,9 +211,15 @@ export type ApiKey = {
   createdAt: Scalars['Time']['output'];
   createdBy: User;
   key: Scalars['String']['output'];
+  keyType: ApiKeyType;
   lastUsed?: Maybe<Scalars['Time']['output']>;
   name: Scalars['String']['output'];
 };
+
+export enum ApiKeyType {
+  Private = 'private',
+  Public = 'public'
+}
 
 export enum AccessType {
   Deny = 'DENY',
@@ -557,6 +563,7 @@ export type CallAgent = {
   defaultPrompt?: Maybe<VersionedPrompt>;
   endpointDetectorConfig: EndpointDetectorConfig;
   extractors: Array<CallAgentExtractor>;
+  fillEmptyStringVariables: Scalars['Boolean']['output'];
   functionDefinitions: Array<CallAgentFunctionDefinition>;
   id: Scalars['ID']['output'];
   idleMessageConfig: IdleMessageConfig;
@@ -580,6 +587,7 @@ export type CallAgent = {
   transcriberConfig: TranscriberConfig;
   transferNumber?: Maybe<Scalars['String']['output']>;
   utteranceDetectorConfig: UtteranceDetectorConfig;
+  versionedPromptAbTestDetails?: Maybe<VersionedPromptAbTestDetails>;
   versionedPromptBackupDetails?: Maybe<VersionedPromptBackupDetails>;
   voiceOptionValues?: Maybe<Array<ModelOptionValue>>;
   voiceVolumeLevel: Scalars['Int']['output'];
@@ -618,6 +626,7 @@ export type CallAgentInput = {
   defaultVersionedPrompt?: InputMaybe<CallAgentVersionedPromptInput>;
   defaultVoiceId: Scalars['ID']['input'];
   endpointDetectorConfig?: InputMaybe<EndpointDetectorConfigInput>;
+  fillEmptyStringVariables?: InputMaybe<Scalars['Boolean']['input']>;
   idleMessageConfig?: InputMaybe<IdleConfigInput>;
   inboundWebhookResponse?: InputMaybe<Scalars['Boolean']['input']>;
   inboundWebhookURL?: InputMaybe<Scalars['String']['input']>;
@@ -683,7 +692,7 @@ export type CallRecording = {
 export type CallTranscript = {
   __typename?: 'CallTranscript';
   id: Scalars['ID']['output'];
-  text: Array<SpeakerTextRes>;
+  text: Array<TranscriptLine>;
 };
 
 export enum CallType {
@@ -1128,6 +1137,7 @@ export type CreateTaskAttemptInput = {
 };
 
 export type CreateUserApiKeyInput = {
+  keyType?: InputMaybe<ApiKeyType>;
   name: Scalars['String']['input'];
   workspaceId: Scalars['ID']['input'];
 };
@@ -1271,6 +1281,7 @@ export type DialFilter = {
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
   range?: InputMaybe<TimeRange>;
   systemResultTypes?: InputMaybe<Array<SystemResultType>>;
+  versionedPrompts?: InputMaybe<Array<Scalars['ID']['input']>>;
 };
 
 export type DialListResult = {
@@ -1789,6 +1800,17 @@ export type ListListsItem = {
   modifiedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
+
+export type LiveTranscriptEvent = {
+  __typename?: 'LiveTranscriptEvent';
+  eventType: LiveTranscriptEventType;
+  transcriptLine?: Maybe<TranscriptLine>;
+};
+
+export enum LiveTranscriptEventType {
+  Final = 'FINAL',
+  Live = 'LIVE'
+}
 
 export type LogCallResponse = {
   __typename?: 'LogCallResponse';
@@ -3084,8 +3106,8 @@ export type RunChatQueryInput = {
 export type RunChatQueryStreamResult = {
   __typename?: 'RunChatQueryStreamResult';
   messageType: ChatStreamMessageType;
-  speakerRes?: Maybe<SpeakerTextRes>;
   text?: Maybe<Scalars['String']['output']>;
+  transcriptLine?: Maybe<TranscriptLine>;
 };
 
 export type RunModelCounterfactualInput = {
@@ -3280,19 +3302,6 @@ export type SpeakerTextKnowledgeBaseContext = {
   text: Scalars['String']['output'];
 };
 
-export type SpeakerTextRes = {
-  __typename?: 'SpeakerTextRes';
-  audioEnd: Scalars['Int']['output'];
-  audioStart: Scalars['Int']['output'];
-  detailType?: Maybe<Scalars['String']['output']>;
-  functionCalls?: Maybe<Array<FunctionCallRes>>;
-  knowledgeBaseContext?: Maybe<Array<SpeakerTextKnowledgeBaseContext>>;
-  nodeTransitionResult?: Maybe<NodeTransitionResult>;
-  playId?: Maybe<Scalars['String']['output']>;
-  speaker: Scalars['String']['output'];
-  text: Scalars['String']['output'];
-};
-
 export type StatFilter = {
   contactLists?: InputMaybe<Array<Scalars['ID']['input']>>;
   dialSessions?: InputMaybe<Array<Scalars['ID']['input']>>;
@@ -3326,7 +3335,8 @@ export type Subscription = {
   runChatQueryStream: RunChatQueryStreamResult;
   runModelTranscriptCounterfactual: RunModelCounterfactualResult;
   watchDialEvents: DialEvent;
-  watchTranscript: Array<SpeakerTextRes>;
+  watchLiveTranscriptEvents: LiveTranscriptEvent;
+  watchTranscript: Array<TranscriptLine>;
   watchWorkspaceDialEvents: WorkspaceDialEvent;
 };
 
@@ -3372,6 +3382,11 @@ export type SubscriptionRunModelTranscriptCounterfactualArgs = {
 
 
 export type SubscriptionWatchDialEventsArgs = {
+  dialId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionWatchLiveTranscriptEventsArgs = {
   dialId: Scalars['ID']['input'];
 };
 
@@ -3475,6 +3490,30 @@ export type TranscriberParamsInput = {
   type: Scalars['String']['input'];
 };
 
+export type TranscriptLine = {
+  __typename?: 'TranscriptLine';
+  audioEnd: Scalars['Int']['output'];
+  audioStart: Scalars['Int']['output'];
+  /** @deprecated Use role instead */
+  detailType?: Maybe<Scalars['String']['output']>;
+  functionCalls?: Maybe<Array<FunctionCallRes>>;
+  knowledgeBaseContext?: Maybe<Array<SpeakerTextKnowledgeBaseContext>>;
+  nodeTransitionResult?: Maybe<NodeTransitionResult>;
+  playId?: Maybe<Scalars['String']['output']>;
+  role: TranscriptLineRole;
+  /** @deprecated Use role instead */
+  speaker: Scalars['String']['output'];
+  text: Scalars['String']['output'];
+};
+
+export enum TranscriptLineRole {
+  Ai = 'AI',
+  FunctionResult = 'FUNCTION_RESULT',
+  Human = 'HUMAN',
+  Ivr = 'IVR',
+  NodeTransition = 'NODE_TRANSITION'
+}
+
 export type UnlinkPhoneNumberAgentInput = {
   agentId: Scalars['ID']['input'];
   phoneNumberId: Scalars['ID']['input'];
@@ -3554,6 +3593,7 @@ export type UpdateCallAgentInput = {
   callAgentExtractorId?: InputMaybe<NullableStringInput>;
   defaultPromptId?: InputMaybe<Scalars['ID']['input']>;
   endpointDetectorConfig?: InputMaybe<EndpointDetectorConfigInput>;
+  fillEmptyStringVariables?: InputMaybe<Scalars['Boolean']['input']>;
   idleMessageConfig?: InputMaybe<IdleConfigInput>;
   inboundWebhookResponse?: InputMaybe<Scalars['Boolean']['input']>;
   inboundWebhookURL?: InputMaybe<Scalars['String']['input']>;
@@ -3572,7 +3612,7 @@ export type UpdateCallAgentInput = {
   transcriberParams?: InputMaybe<TranscriberParamsInput>;
   transferNumber?: InputMaybe<NullableStringInput>;
   utteranceDetectorConfig?: InputMaybe<UtteranceDetectorConfigInput>;
-  versionedPromptBackupDetails?: InputMaybe<VersionedPromptBackupDetailsInput>;
+  versionedPromptAbTestDetails?: InputMaybe<VersionedPromptAbTestDetailsInput>;
   voiceId?: InputMaybe<Scalars['ID']['input']>;
   voiceOptionValues?: InputMaybe<Array<ModelOptionValueInput>>;
   voiceVolumeLevel?: InputMaybe<Scalars['Int']['input']>;
@@ -3642,6 +3682,7 @@ export type UpdateSystemResultMappingInput = {
 export type UpdateVersionedPromptInput = {
   agentType?: InputMaybe<AgentType>;
   aiModelId?: InputMaybe<Scalars['ID']['input']>;
+  backupDetails?: InputMaybe<VersionedPromptBackupDetailsInput>;
   flowDefinition?: InputMaybe<FlowDefinitionInput>;
   flowDefinitionJSON?: InputMaybe<Scalars['String']['input']>;
   modelOptionValues?: InputMaybe<Array<ModelOptionValueInput>>;
@@ -3790,6 +3831,7 @@ export type VersionedPrompt = {
   __typename?: 'VersionedPrompt';
   agentType: AgentType;
   aiModel?: Maybe<AiModel>;
+  backupDetails?: Maybe<VersionedPromptBackupDetails>;
   createdAt: Scalars['Time']['output'];
   flowDefinition?: Maybe<FlowDefinition>;
   id: Scalars['ID']['output'];
@@ -3798,6 +3840,29 @@ export type VersionedPrompt = {
   name: Scalars['String']['output'];
   prompt?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['Time']['output'];
+};
+
+export type VersionedPromptAbTestDetails = {
+  __typename?: 'VersionedPromptABTestDetails';
+  disable: Scalars['Boolean']['output'];
+  variants: Array<VersionedPromptAbTestVariant>;
+};
+
+export type VersionedPromptAbTestDetailsInput = {
+  disable?: InputMaybe<Scalars['Boolean']['input']>;
+  variants?: InputMaybe<Array<VersionedPromptAbTestVariantInput>>;
+};
+
+export type VersionedPromptAbTestVariant = {
+  __typename?: 'VersionedPromptABTestVariant';
+  percentage: Scalars['Int']['output'];
+  versionedPrompt: VersionedPrompt;
+  versionedPromptId: Scalars['ID']['output'];
+};
+
+export type VersionedPromptAbTestVariantInput = {
+  percentage: Scalars['Int']['input'];
+  versionedPromptId: Scalars['ID']['input'];
 };
 
 export type VersionedPromptBackupDetails = {
@@ -3920,6 +3985,7 @@ export type Workspace = {
   aggregateStats: AggregateStats;
   aiEvalConfigs: Array<AiEvalConfig>;
   aiModels: AiModelsResult;
+  allowExternalVoiceAPI: Scalars['Boolean']['output'];
   apiKeys?: Maybe<Array<ApiKey>>;
   apolloPurposes: Array<ApolloPurpose>;
   apolloUsers: Array<ApolloUser>;
@@ -4143,6 +4209,7 @@ export type WorkspaceLimits = {
 };
 
 export type WorkspaceLimitsInput = {
+  allowExternalVoiceAPI?: InputMaybe<Scalars['Boolean']['input']>;
   concurrentDialLimit?: InputMaybe<Scalars['Int']['input']>;
   cpsLimit?: InputMaybe<Scalars['Int']['input']>;
   maxExportLimit?: InputMaybe<Scalars['Int']['input']>;
@@ -4203,7 +4270,7 @@ export type RefreshTranscriptSubscriptionVariables = Exact<{
 }>;
 
 
-export type RefreshTranscriptSubscription = { __typename?: 'Subscription', watchTranscript: Array<{ __typename?: 'SpeakerTextRes', speaker: string, text: string, detailType?: string | null }> };
+export type RefreshTranscriptSubscription = { __typename?: 'Subscription', watchLiveTranscriptEvents: { __typename?: 'LiveTranscriptEvent', eventType: LiveTranscriptEventType, transcriptLine?: { __typename?: 'TranscriptLine', role: TranscriptLineRole, speaker: string, text: string, detailType?: string | null, audioStart: number, audioEnd: number, functionCalls?: Array<{ __typename?: 'FunctionCallRes', name: string, arguments: string }> | null } | null } };
 
 export type BrowserDialTokenMutationVariables = Exact<{
   input: BrowserDialTokenInput;
@@ -4223,6 +4290,6 @@ export type ConnectSessionSubscription = { __typename?: 'Subscription', connectS
 export const StartDialSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StartDialSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startDialSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialSessionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}}}]}]}}]} as unknown as DocumentNode<StartDialSessionMutation, StartDialSessionMutationVariables>;
 export const HangupCallDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"HangupCall"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dropVoicemail"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"transferNumber"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hangupCall"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}},{"kind":"Argument","name":{"kind":"Name","value":"dropVoicemail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dropVoicemail"}}},{"kind":"Argument","name":{"kind":"Name","value":"transferNumber"},"value":{"kind":"Variable","name":{"kind":"Name","value":"transferNumber"}}}]}]}}]} as unknown as DocumentNode<HangupCallMutation, HangupCallMutationVariables>;
 export const SetPausedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetPaused"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pauseStatus"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pauseAI"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}},{"kind":"Argument","name":{"kind":"Name","value":"pauseStatus"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pauseStatus"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SetPausedMutation, SetPausedMutationVariables>;
-export const RefreshTranscriptDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"RefreshTranscript"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"watchTranscript"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"speaker"}},{"kind":"Field","name":{"kind":"Name","value":"text"}},{"kind":"Field","name":{"kind":"Name","value":"detailType"}}]}}]}}]} as unknown as DocumentNode<RefreshTranscriptSubscription, RefreshTranscriptSubscriptionVariables>;
+export const RefreshTranscriptDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"RefreshTranscript"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"watchLiveTranscriptEvents"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dialId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"eventType"}},{"kind":"Field","name":{"kind":"Name","value":"transcriptLine"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"speaker"}},{"kind":"Field","name":{"kind":"Name","value":"text"}},{"kind":"Field","name":{"kind":"Name","value":"detailType"}},{"kind":"Field","name":{"kind":"Name","value":"audioStart"}},{"kind":"Field","name":{"kind":"Name","value":"audioEnd"}},{"kind":"Field","name":{"kind":"Name","value":"functionCalls"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"arguments"}}]}}]}}]}}]}}]} as unknown as DocumentNode<RefreshTranscriptSubscription, RefreshTranscriptSubscriptionVariables>;
 export const BrowserDialTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"BrowserDialToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BrowserDialTokenInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browserDialToken"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"iceConfig"}},{"kind":"Field","name":{"kind":"Name","value":"telephonyProvider"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}}]} as unknown as DocumentNode<BrowserDialTokenMutation, BrowserDialTokenMutationVariables>;
 export const ConnectSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"ConnectSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"sessionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sessionId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"messageType"}},{"kind":"Field","name":{"kind":"Name","value":"content"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DialsUpdatedMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contactId"}},{"kind":"Field","name":{"kind":"Name","value":"dials"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"answerType"}},{"kind":"Field","name":{"kind":"Name","value":"callDispositionId"}},{"kind":"Field","name":{"kind":"Name","value":"systemResultType"}},{"kind":"Field","name":{"kind":"Name","value":"toNumber"}}]}},{"kind":"Field","name":{"kind":"Name","value":"contactComplete"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DialConnectMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dialId"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SessionUpdatedMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dialSession"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reason"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ConnectSessionSubscription, ConnectSessionSubscriptionVariables>;
