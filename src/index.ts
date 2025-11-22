@@ -1,3 +1,3 @@
-export { VogentCall } from './VogentCall';
+export { VogentCall, Transcript } from './VogentCall';
 export * from './devices/VogentDevice';
 export { dialStatusIsComplete } from './utils';
