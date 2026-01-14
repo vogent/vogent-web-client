@@ -10,6 +10,11 @@ import {
   Track,
 } from 'livekit-client';
 
+function isReactNative(): boolean {
+  // navigator.product is deprecated on browsers, but will be set appropriately for react-native.
+  return navigator.product == 'ReactNative';
+}
+
 export class LivekitCall {
   _room: Room;
   _params: any;
@@ -102,6 +107,10 @@ export class LivekitDevice {
     _publication: RemoteTrackPublication,
     _participant: RemoteParticipant
   ) {
+    if (isReactNative()) {
+      return;
+    }
+
     if (track.kind === 'audio') {
       const audioElement = track.attach();
       document.body.appendChild(audioElement);

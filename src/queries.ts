@@ -22,10 +22,20 @@ export const AI_SET_PAUSED = gql(`
 
 export const REFRESH_TRANSCRIPT = gql(`
   subscription RefreshTranscript($dialId: ID!) {
-    watchTranscript(dialId: $dialId) {
-      speaker
-      text
-      detailType
+    watchLiveTranscriptEvents(dialId: $dialId) {
+      eventType
+      transcriptLine {
+        role
+        speaker
+        text
+        detailType
+        audioStart
+        audioEnd
+        functionCalls {
+          name
+          arguments
+        }
+      }
     }
   }
 `);
