@@ -80,6 +80,12 @@ export type Transcript = {
 
   /** @deprecated Use role instead */
   speaker: string;
+
+  /** The start time of the transcript in milliseconds */
+  audioStart: number;
+
+  /** The end time of the transcript in milliseconds */
+  audioEnd: number;
 }[];
 
 /**
@@ -242,10 +248,14 @@ export class VogentCall {
           text: t.text,
           role: t.role,
           speaker: t.speaker,
+          audioStart: t.audioStart,
+          audioEnd: t.audioEnd,
         })).concat(Object.values(liveTranscriptLines).map((t) => ({
           text: t.text,
           role: t.role,
           speaker: t.speaker,
+          audioStart: t.audioStart,
+          audioEnd: t.audioEnd,
         }))));
       });
 
